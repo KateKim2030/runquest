@@ -85,5 +85,12 @@ const AD = RQ.fresh();
 for (let i = 0; i < 10; i++) RQ.addSnack(AD, "squat", 10, 31, "2026-11-11");
 ok(RQ.activeDays(AD, "2026-11-11", "2026-11-11").size === 1, "10 snack sets (5 min+) make an active day");
 
+// rep speed
+const SP = RQ.fresh();
+ok(RQ.tempoOf(SP, "squat") === 2 && RQ.snackSpeed(SP, "squat") === "normal", "squat 2s per rep by default");
+RQ.setSnackSpeed(SP, "squat", "fast");
+ok(RQ.tempoOf(SP, "squat") === 1.5 && RQ.tempoOf(SP, "squat", "slow") === 2.8, "fast 1.5s, slow 2.8s");
+ok(RQ.setSnackSpeed(SP, "squat", "zzz") === "fast", "unknown speed ignored");
+
 console.log(pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);
