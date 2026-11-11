@@ -157,12 +157,56 @@
   }
   const snackLabel = (id, n) => SNACK[id].name + " " + (SNACK[id].kind === "time" ? n + "초" : n + "개");
   // done = how many reps (or seconds) were actually finished; a set counts once it is at least half done
+  // ---------- 오늘의 근력 퀘스트: one leg move + one upper/back move + one core move, rotating by date ----------
+  const QUEST_XP = 50, BADGE_XP = 30;
+  const Q_LEGS = ["squat", "lunge", "calf", "wallsit"], Q_UPPER = ["wallpush", "birddog"], Q_CORE = ["plank", "bridge", "knee"];
+  const dayNum = (k) => Math.round(parseDay(k).getTime() / 864e5);
+  const fullSetOn = (state, day, id) => state.log.some((e) => e.day === day && e.kind === "snack" && e.snack === id && e.full);
+  function strengthQuest(state, day) {
+    const d = dayNum(day);
+    return [Q_LEGS[d % 4], Q_UPPER[d % 2], Q_CORE[d % 3]].map((id) => ({ id, n: snackN(state, id), done: fullSetOn(state, day, id) }));
+  }
+  const questCleared = (state, day) => !!(state.qClears && state.qClears[day]);
+
+  // ---------- 누적 배지: lifetime reps (or seconds) per exercise ----------
+  const BADGE_STEPS = { reps: [50, 100, 300, 500, 1000], time: [60, 300, 600, 1800] };
+  const snackTotal = (state, id) => state.log.reduce((a, e) => a + (e.kind === "snack" && e.snack === id ? e.n || 0 : 0), 0);
+  function badgeLabel(id, step) {
+    const x = SNACK[id];
+    return x.name + " " + (x.kind === "time" ? (step >= 60 ? step / 60 + "분" : step + "초") : step.toLocaleString("ko-KR") + "개");
+  }
+  function badgesFor(state, id) {
+    const steps = BADGE_STEPS[SNACK[id].kind], total = snackTotal(state, id);
+    return { id, total, earned: steps.filter((v) => total >= v), next: steps.find((v) => total < v) || null };
+  }
+  const allBadges = (state) => SNACKS.reduce((a, x) => a + badgesFor(state, x.id).earned.length, 0);
+
   function addSnack(state, id, done, sec, today) {
-    const x = SNACK[id], target = snackN(state, id), full = done >= target;
+    const target = snackN(state, id), full = done >= target;
     const xp = done * 2 >= target ? SNACK_XP : 0;
+    const before = badgesFor(state, id).earned.length;
     state.xp += xp;
     state.log.push({ day: today, kind: "snack", snack: id, n: done, full, sec: Math.round(sec), done: full, xp });
-    return { xp, full };
+    const out = { xp, full, questClear: false, badges: [] };
+    // new badges
+    badgesFor(state, id).earned.slice(before).forEach((step) => { out.badges.push(step); out.xp += BADGE_XP; state.xp += BADGE_XP; });
+    // daily strength quest
+    const q = strengthQuest(state, today);
+    out.quest = q;
+    if (q.every((it) => it.done) && !questCleared(state, today)) {
+      state.qClears = { ...(state.qClears || {}), [today]: true };
+      out.questClear = true; out.xp += QUEST_XP; state.xp += QUEST_XP;
+    }
+    return out;
+  }
+  // After a full set: "easy" adds reps next time, "hard" takes some away. Returns the new target, or null if unchanged.
+  function rateSnack(state, id, rating) {
+    const last = [...state.log].reverse().find((e) => e.kind === "snack" && e.snack === id);
+    if (last) last.rating = rating;
+    const x = SNACK[id], cur = snackN(state, id), d = x.kind === "time" ? 10 : 2;
+    if (rating === "easy") return setSnackN(state, id, cur + d) !== cur ? snackN(state, id) : null;
+    if (rating === "hard") return setSnackN(state, id, cur - d) !== cur ? snackN(state, id) : null;
+    return null;
   }
   const snacksOn = (state, day, id) => state.log.filter((e) => e.day === day && e.kind === "snack" && e.xp > 0 && (!id || e.snack === id)).length;
   // Native Korean counting words for the voice: 하나, 둘 ... 스물, 서른
@@ -252,7 +296,7 @@
   function save(storage, state) { try { storage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 
   const API = { KEY, GOAL_MIN, WORLDS, STAGES, NAMES, totalSec, runSec, runCount, xpFor, dayKey, addDays, mondayOf,
-    SNACKS, SNACK, SNACK_XP, SPEEDS, snackSpeed, setSnackSpeed, tempoOf, snackN, setSnackN, snackLabel, addSnack, snacksOn, koNum, activeDays,
+    SNACKS, SNACK, SNACK_XP, QUEST_XP, BADGE_XP, BADGE_STEPS, strengthQuest, questCleared, snackTotal, badgeLabel, badgesFor, allBadges, rateSnack, SPEEDS, snackSpeed, setSnackSpeed, tempoOf, snackN, setSnackN, snackLabel, addSnack, snacksOn, koNum, activeDays,
     fresh, start, nodeState, todayPlan, canPlay, finish, rate, addManual, undoManual, minutesOn, level, week,
     streakWeeks, segmentAt, fmtSay, clock, runNo, announce, load, save };
   if (typeof module !== "undefined" && module.exports) module.exports = API; else root.RQ = API;

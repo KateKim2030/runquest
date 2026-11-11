@@ -92,5 +92,25 @@ RQ.setSnackSpeed(SP, "squat", "fast");
 ok(RQ.tempoOf(SP, "squat") === 1.5 && RQ.tempoOf(SP, "squat", "slow") === 2.8, "fast 1.5s, slow 2.8s");
 ok(RQ.setSnackSpeed(SP, "squat", "zzz") === "fast", "unknown speed ignored");
 
+// strength quest, badges, level-up
+const Q = RQ.fresh(), QD = "2026-11-12";
+const quest = RQ.strengthQuest(Q, QD);
+ok(quest.length === 3 && new Set(quest.map((q) => q.id)).size === 3, "quest has 3 different moves: " + quest.map((q) => q.id));
+ok(RQ.strengthQuest(Q, "2026-11-13").map((q) => q.id).join() !== quest.map((q) => q.id).join(), "quest changes the next day");
+let qr = RQ.addSnack(Q, quest[0].id, quest[0].n, 20, QD);
+ok(!qr.questClear && RQ.strengthQuest(Q, QD)[0].done, "first quest move checked");
+RQ.addSnack(Q, quest[1].id, quest[1].n, 20, QD);
+qr = RQ.addSnack(Q, quest[2].id, quest[2].n, 30, QD);
+ok(qr.questClear && qr.xp === RQ.SNACK_XP + RQ.QUEST_XP && RQ.questCleared(Q, QD), "3 of 3 -> quest clear +50");
+ok(!RQ.addSnack(Q, quest[2].id, quest[2].n, 30, QD).questClear, "quest bonus only once a day");
+const B = RQ.fresh();
+for (let i = 0; i < 4; i++) RQ.addSnack(B, "squat", 10, 20, "2026-11-12");
+let br = RQ.addSnack(B, "squat", 10, 20, "2026-11-12");
+ok(br.badges.length === 1 && br.badges[0] === 50 && RQ.badgesFor(B, "squat").next === 100, "50 squats -> first badge");
+ok(RQ.badgeLabel("plank", 300) === "플랭크 5분" && RQ.badgeLabel("squat", 1000) === "스쿼트 1,000개", "badge labels");
+ok(RQ.rateSnack(B, "squat", "easy") === 12 && RQ.snackN(B, "squat") === 12, "easy -> 12 next time");
+ok(RQ.rateSnack(B, "squat", "ok") === null && RQ.rateSnack(B, "squat", "hard") === 10, "ok keeps, hard -> 10");
+ok(RQ.rateSnack(B, "plank", "easy") === 40, "plank easy -> 40s");
+
 console.log(pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);

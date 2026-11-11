@@ -215,6 +215,38 @@ nav button.on .ic { opacity: 1; }
 .mode small { display: block; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mode[aria-pressed="true"] { background: var(--ink); color: var(--bg2); box-shadow: 0 3px 0 var(--run-d); }
 .mode[aria-pressed="true"] small { color: color-mix(in srgb, var(--bg2) 80%, transparent); }
+
+/* strength quest, badges */
+.qhead { display: flex; justify-content: space-between; align-items: flex-start; }
+.qpips { display: flex; gap: 5px; margin-top: 4px; }
+.qpips i { width: 14px; height: 14px; border-radius: 50%; background: var(--card); }
+.qpips i.on { background: var(--gold); box-shadow: 0 2px 0 var(--gold-d); }
+.qcard.clear { border-color: var(--gold); }
+.qrow { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.qrow:first-of-type { margin-top: 10px; }
+.qrow .mi { width: 52px; height: 52px; border-radius: 50%; background: var(--walk); overflow: hidden; flex: none; }
+.qrow .mi svg { width: 100%; height: 100%; display: block; }
+.qrow .nm { flex: 1; font-size: 17px; min-width: 0; }
+.qrow .nm small { display: block; color: var(--soft); font-size: 13px; }
+.qrow.done .nm { color: var(--soft); }
+.qrow .go { background: var(--ink); color: var(--bg2); border-radius: 12px; padding: 9px 14px 8px; font-size: 15px; box-shadow: 0 3px 0 var(--run-d); flex: none; }
+.qrow .go:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--run-d); }
+.qrow .ok { width: 38px; height: 38px; border-radius: 50%; background: var(--gold); display: grid; place-items: center; font-size: 18px; color: var(--ink); box-shadow: 0 2px 0 var(--gold-d); flex: none; }
+.qnote { font-size: 13px; color: var(--soft); margin-top: 8px; }
+.weekdots i { position: relative; }
+.weekdots i.str::after { content: ""; position: absolute; right: -3px; top: -3px; width: 10px; height: 10px; border-radius: 50%; background: var(--hi); border: 2px solid var(--bg2); }
+.badge-new { display: flex; align-items: center; gap: 10px; justify-content: center; background: var(--bg2); border: 2px solid var(--gold); border-radius: 16px; padding: 10px 14px; margin: 8px auto 0; font-size: 16px; max-width: 320px; animation: pop .6s cubic-bezier(.3, 1.6, .5, 1); }
+.medal { width: 30px; height: 30px; border-radius: 50%; background: var(--card); color: var(--dim); display: grid; place-items: center; font-family: var(--num); font-size: 9px; flex: none; }
+.medal.on { background: var(--gold); color: var(--ink); box-shadow: 0 2px 0 var(--gold-d); font-size: 14px; }
+.brow { padding: 12px 0; border-top: 1px solid var(--line); }
+.brow:first-of-type { border-top: 0; }
+.brow .bt { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 16px; }
+.brow .bt small { color: var(--soft); font-size: 13px; }
+.medals { display: flex; gap: 6px; margin-top: 8px; }
+.bbar { height: 6px; background: var(--card); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+.bbar i { display: block; height: 100%; background: var(--ink); border-radius: 3px; }
+.sk-done { overflow-y: auto; }
+.sk-done .burst svg { width: 120px; height: 120px; }
 /* snack workouts */
 .snack-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .sn { background: var(--bg2); border: 2px solid var(--line); border-radius: 20px; padding: 10px 10px 12px; text-align: left; position: relative; }
@@ -348,7 +380,7 @@ function viewToday() {
     '<button class="mode" data-mode="strength" aria-pressed="' + (mode === "strength") + '"><span class="mi">' + RQART.ex("squat", 1) + '</span><span><b>근력</b><small>스쿼트 · 플랭크</small></span></button></div>';
   h += '<div class="card"><div class="ringrow"><div class="ring">' + ringSvg(min) + '<div class="num"><b>' + min + '</b><span>/ ' + RQ.GOAL_MIN + '분</span></div></div><div>' +
     '<div class="eyebrow">TODAY</div><div style="font-size:19px;margin-top:2px">' + (min >= RQ.GOAL_MIN ? "오늘 목표 달성! 🎉" : (RQ.GOAL_MIN - min) + "분 더 움직이면 달성") + "</div>" +
-    '<div class="weekdots">' + wk.days.map((d, i) => '<i class="' + (d.min >= 5 ? "on " : "") + (d.day === t ? "today" : "") + '">' + names[i] + "</i>").join("") + "</div>" +
+    '<div class="weekdots">' + wk.days.map((d, i) => '<i class="' + (d.min >= 5 ? "on " : "") + (RQ.questCleared(S, d.day) ? "str " : "") + (d.day === t ? "today" : "") + '">' + names[i] + "</i>").join("") + "</div>" +
     '<div class="streak">이번 주 <b>' + wk.active + "</b>/3일" + (streak ? " · 🔥 <b>" + streak + "주</b> 연속" : "") + "</div></div></div></div>";
 
   if (mode === "strength") return h + viewSnack();
@@ -430,6 +462,16 @@ function viewLog() {
     wk.days.map((d, i) => '<div class="col' + (d.min ? "" : " zero") + (d.day === t ? " today" : "") + '"><small>' + (d.min || "") + '</small><i style="height:' + Math.round((d.min / max) * 128) + 'px"></i><em>' + names[i] + "</em></div>").join("") + "</div></div>";
   const recent = S.log.slice(-15).reverse();
   const rateIc = { easy: "😎", ok: "🙂", hard: "🥵" };
+  const nb = RQ.allBadges(S);
+  h += '<div class="card"><div class="eyebrow">BADGES</div><div style="font-size:17px;margin:4px 0 4px">모은 배지 ' + nb + "개</div>" + RQ.SNACKS.map((x) => {
+    const b = RQ.badgesFor(S, x.id), steps = RQ.BADGE_STEPS[x.kind], unit = x.kind === "time" ? "" : "개";
+    const fmt = (v) => (x.kind === "time" ? (v >= 60 ? v / 60 + "분" : v + "초") : v.toLocaleString("ko-KR") + unit);
+    const prevStep = b.earned.length ? b.earned[b.earned.length - 1] : 0;
+    const pct = b.next ? Math.round(((b.total - prevStep) / (b.next - prevStep)) * 100) : 100;
+    return '<div class="brow"><div class="bt"><span>' + esc(x.name) + "</span><small>누적 " + fmt(b.total) + (b.next ? " · 다음 배지까지 " + fmt(b.next - b.total) : " · 모두 모았어요!") + "</small></div>" +
+      '<div class="medals">' + steps.map((v) => '<span class="medal' + (b.total >= v ? " on" : "") + '">' + (b.total >= v ? "★" : (x.kind === "time" ? (v >= 60 ? v / 60 + "분" : v) : v)) + "</span>").join("") + "</div>" +
+      '<div class="bbar"><i style="width:' + pct + '%"></i></div></div>';
+  }).join("") + "</div>";
   h += '<div class="card"><div class="eyebrow">RECORDS</div>' + (recent.length ? recent.map((e) => {
     const [, m, d] = e.day.split("-");
     if (e.kind === "snack") return '<div class="rec"><span class="when">' + +e.day.split("-")[1] + "/" + +e.day.split("-")[2] + '</span><span class="what">' + (e.xp ? "◆ " : "◇ ") + "틈새 · " + esc(RQ.snackLabel(e.snack, e.n)) + '</span><span class="t">' + (e.sec < 60 ? e.sec + "초" : Math.round(e.sec / 60) + "분") + "</span></div>";
@@ -442,11 +484,25 @@ function viewLog() {
   return h;
 }
 
+// ---------------- strength quest card ----------------
+function questCard() {
+  const t = today(), q = RQ.strengthQuest(S, t), got = q.filter((it) => it.done).length, clear = RQ.questCleared(S, t);
+  return '<div class="card qcard' + (clear ? " clear" : "") + '"><div class="qhead"><div><div class="eyebrow">' + (clear ? "QUEST CLEAR" : "TODAY'S STRENGTH QUEST") + "</div>" +
+    "<h2>" + (clear ? "근력 퀘스트 클리어!" : "오늘의 근력 퀘스트") + '</h2></div><div class="qpips">' + q.map((it) => '<i class="' + (it.done ? "on" : "") + '"></i>').join("") + "</div></div>" +
+    q.map((it) => {
+      const x = RQ.SNACK[it.id], lab = x.kind === "time" ? it.n + "초" : it.n + "개";
+      return '<div class="qrow' + (it.done ? " done" : "") + '"><span class="mi">' + RQART.ex(it.id, 1) + '</span><span class="nm">' + esc(x.name) + "<small>" + lab + (it.done ? " · 완료" : "") + "</small></span>" +
+        (it.done ? '<span class="ok">✓</span>' : '<button class="go" data-snackgo="' + it.id + '">시작</button>') + "</div>";
+    }).join("") +
+    '<div class="qnote">' + (clear ? "내일은 다른 동작 조합이 나와요." : "세 가지를 끝까지 하면 보너스 +" + RQ.QUEST_XP + " XP · 동작은 매일 바뀌어요") + "</div></div>";
+}
+
 // ---------------- snack tab ----------------
 function viewSnack() {
   const t = today(), n = RQ.snacksOn(S, t);
   let h = '<div class="sub" style="margin:0 4px 12px">생각날 때 한 세트씩. 시작하면 박자에 맞춰 개수를 세어 줘요.' +
     (n ? ' 오늘 <b style="color:var(--ink)">' + n + "세트</b> 했어요!" : "") + "</div>";
+  h = questCard() + h;
   h += '<div class="snack-grid">' + RQ.SNACKS.map((x) => {
     const c = RQ.snacksOn(S, t, x.id);
     return '<button class="sn" data-snack="' + x.id + '"><div class="pic">' + RQART.ex(x.id, 1) + "</div>" + (c ? '<span class="cnt">✓ ' + c + "</span>" : "") +
@@ -474,6 +530,7 @@ function startSnack(id) {
   if (R) return;
   audioInit(); closeAll();
   const x = RQ.SNACK[id];
+  $("skbox").classList.remove("sk-done");
   SK = { id, n: RQ.snackN(S, id), tempo: RQ.tempoOf(S, id), startAt: Date.now(), pausedMs: 0, pausedAt: 0, said: {}, done: 0 };
   $("skbox").innerHTML = '<div class="sk-top"><b style="font-weight:400">' + esc(x.name) + '</b><button id="sk-stop">그만하기</button></div>' +
     '<div class="sk-pic">' + RQART.ex(id, 0).replace("<svg", '<svg id="sk-a"') + RQART.ex(id, 1).replace("<svg", '<svg id="sk-b" class="off"') + "</div>" +
@@ -536,9 +593,21 @@ function skFinish(complete) {
   const out = RQ.addSnack(S, id, done, sec, today()); persist();
   if (complete) { say("끝! 잘했어요."); buzz(BUZZ.done); beep(784, .15); setTimeout(() => beep(1047, .3), 170); }
   const unit = x.kind === "time" ? "초" : "개", n = RQ.snacksOn(S, today());
+  const inQuest = out.quest.some((it) => it.id === id), got = out.quest.filter((it) => it.done).length;
+  if (out.questClear) setTimeout(() => say("근력 퀘스트 클리어!"), 1400);
+  const parts = [];
+  if (out.xp) parts.push("세트 +" + RQ.SNACK_XP);
+  if (out.questClear) parts.push("퀘스트 +" + RQ.QUEST_XP);
+  if (out.badges.length) parts.push("배지 +" + RQ.BADGE_XP * out.badges.length);
+  $("skbox").classList.add("sk-done");
   $("skbox").innerHTML = '<div class="sk-sp"></div><div class="burst">' + RQART.svg(out.xp ? "cheer" : "tired") + "</div>" +
-    '<div class="clear-title" style="font-size:32px">' + (out.full ? esc(x.name) + " " + done + unit + " 완료!" : esc(x.name) + " " + done + unit + " 했어요") + "</div>" +
-    '<div class="gain">' + (out.xp ? "+" + out.xp + " XP" : "") + "<small>" + (out.xp ? "오늘 틈새 운동 " + n + "세트째" : "절반 넘게 하면 한 세트로 쳐요. 다음엔 조금 더!") + "</small></div>" +
+    '<div class="clear-title" style="font-size:32px">' + (out.questClear ? "근력 퀘스트 클리어!" : out.full ? esc(x.name) + " " + done + unit + " 완료!" : esc(x.name) + " " + done + unit + " 했어요") + "</div>" +
+    (out.questClear ? '<div class="sub" style="text-align:center">' + esc(x.name) + " " + done + unit + " 완료 · 오늘의 퀘스트 3/3</div>" : "") +
+    '<div class="gain">' + (out.xp ? "+" + out.xp + " XP" : "") + "<small>" +
+      (out.xp ? parts.join(" · ") + " · 오늘 " + n + "세트째" + (inQuest && !out.questClear && !RQ.questCleared(S, today()) ? " · 퀘스트 " + got + "/3" : "") : "절반 넘게 하면 한 세트로 쳐요. 다음엔 조금 더!") + "</small></div>" +
+    out.badges.map((b) => '<div class="badge-new"><span class="medal on">★</span>새 배지 · ' + esc(RQ.badgeLabel(id, b)) + "</div>").join("") +
+    (out.full ? '<div class="rate-q">이번 세트 어땠어요?</div><div class="rate">' +
+      '<button data-srate="easy" data-sid="' + id + '"><span>😎</span>쉬웠다</button><button data-srate="ok" data-sid="' + id + '"><span>🙂</span>적당했다</button><button data-srate="hard" data-sid="' + id + '"><span>🥵</span>힘들었다</button></div><div class="hint" id="srhint"></div>' : "") +
     '<div class="sk-sp"></div><div class="sk-btns"><button class="btn ghost" id="sk-close">닫기</button><button class="btn" data-snackgo="' + id + '">한 세트 더</button></div>';
 }
 
@@ -697,6 +766,15 @@ document.addEventListener("click", (e) => {
   const md = t.closest("[data-mode]"); if (md) { S.mode = md.dataset.mode; persist(); return render(); }
   const sg = t.closest("[data-snackgo]"); if (sg) return startSnack(sg.dataset.snackgo);
   const sn = t.closest("[data-snack]"); if (sn) return openSnackSheet(sn.dataset.snack);
+  const sr = t.closest("[data-srate]");
+  if (sr) {
+    document.querySelectorAll("[data-srate]").forEach((b) => b.classList.toggle("sel", b === sr));
+    const id = sr.dataset.sid, x = RQ.SNACK[id], unit = x.kind === "time" ? "초" : "개";
+    const res = RQ.rateSnack(S, id, sr.dataset.srate); persist();
+    $("srhint").textContent = sr.dataset.srate === "ok" ? "좋아요, 이대로 갈게요." :
+      res ? "다음엔 " + res + unit + "로 " + (sr.dataset.srate === "easy" ? "늘릴게요. 레벨 업!" : "줄일게요. 천천히 가요.") : (sr.dataset.srate === "easy" ? "이미 최대 개수예요. 빠르기를 바꿔 봐요." : "이미 가장 적은 개수예요.");
+    return;
+  }
   const spd = t.closest("[data-speed]");
   if (spd) { const id = $("sheetbox").dataset.snack; RQ.setSnackSpeed(S, id, spd.dataset.speed); persist(); return openSnackSheet(id); }
   const stp = t.closest("[data-stepn]");

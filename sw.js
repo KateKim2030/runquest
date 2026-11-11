@@ -1,4 +1,4 @@
-const CACHE = "runquest-5";
+const CACHE = "runquest-6";
 const CORE = ["./", "index.html", "logic.js", "art.js", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE))); self.skipWaiting(); });
 self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
