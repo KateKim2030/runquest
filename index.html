@@ -205,6 +205,16 @@ nav button.on .ic { opacity: 1; }
 .rate-q { text-align: center; color: var(--soft); font-size: 15px; margin-top: 14px; }
 .hint { text-align: center; color: var(--soft); font-size: 14px; min-height: 20px; margin: 4px 0 12px; }
 
+
+/* home category switch (same idea as the English app's 말하기/듣기) */
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 16px; background: var(--card); padding: 5px; border-radius: 20px; }
+.mode { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 15px; text-align: left; color: var(--soft); min-width: 0; }
+.mode .mi { width: 46px; height: 46px; flex: none; background: var(--bg2); border-radius: 50%; overflow: hidden; }
+.mode .mi svg { width: 100%; height: 100%; display: block; }
+.mode b { display: block; font-family: var(--title); font-weight: 400; font-size: 21px; line-height: 1.1; color: inherit; }
+.mode small { display: block; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mode[aria-pressed="true"] { background: var(--ink); color: var(--bg2); box-shadow: 0 3px 0 var(--run-d); }
+.mode[aria-pressed="true"] small { color: color-mix(in srgb, var(--bg2) 80%, transparent); }
 /* snack workouts */
 .snack-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .sn { background: var(--bg2); border: 2px solid var(--line); border-radius: 20px; padding: 10px 10px 12px; text-align: left; position: relative; }
@@ -252,9 +262,8 @@ nav button.on .ic { opacity: 1; }
   <main id="view"></main>
 </div>
 <nav>
-  <button data-tab="today" class="on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>오늘</button>
+  <button data-tab="today" class="on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>홈</button>
   <button data-tab="map"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 6l6-2.5 6 2.5 6-2.5v14.5l-6 2.5-6-2.5-6 2.5z"/><path d="M9 3.5V18M15 6v14.5"/></svg>지도</button>
-  <button data-tab="snack"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/></svg>틈새</button>
   <button data-tab="log"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 20V12M12 20V5M19 20v-9M3 20.5h18"/></svg>기록</button>
 </nav>
 
@@ -328,12 +337,16 @@ function ringSvg(min) {
 }
 function viewToday() {
   const t = today(), min = RQ.minutesOn(S, t), wk = RQ.week(S, t), streak = RQ.streakWeeks(S, t), plan = RQ.todayPlan(S, t);
-  const names = ["월", "화", "수", "목", "금", "토", "일"];
-  let h = '<div class="card"><div class="ringrow"><div class="ring">' + ringSvg(min) + '<div class="num"><b>' + min + '</b><span>/ ' + RQ.GOAL_MIN + '분</span></div></div><div>' +
+  const names = ["월", "화", "수", "목", "금", "토", "일"], mode = S.mode === "strength" ? "strength" : "cardio";
+  let h = '<div class="modes" role="group" aria-label="운동 종류">' +
+    '<button class="mode" data-mode="cardio" aria-pressed="' + (mode === "cardio") + '"><span class="mi">' + RQART.svg("run") + '</span><span><b>유산소</b><small>걷기 · 달리기</small></span></button>' +
+    '<button class="mode" data-mode="strength" aria-pressed="' + (mode === "strength") + '"><span class="mi">' + RQART.ex("squat", 1) + '</span><span><b>근력</b><small>스쿼트 · 플랭크</small></span></button></div>';
+  h += '<div class="card"><div class="ringrow"><div class="ring">' + ringSvg(min) + '<div class="num"><b>' + min + '</b><span>/ ' + RQ.GOAL_MIN + '분</span></div></div><div>' +
     '<div class="eyebrow">TODAY</div><div style="font-size:19px;margin-top:2px">' + (min >= RQ.GOAL_MIN ? "오늘 목표 달성! 🎉" : (RQ.GOAL_MIN - min) + "분 더 움직이면 달성") + "</div>" +
     '<div class="weekdots">' + wk.days.map((d, i) => '<i class="' + (d.min >= 5 ? "on " : "") + (d.day === t ? "today" : "") + '">' + names[i] + "</i>").join("") + "</div>" +
     '<div class="streak">이번 주 <b>' + wk.active + "</b>/3일" + (streak ? " · 🔥 <b>" + streak + "주</b> 연속" : "") + "</div></div></div></div>";
 
+  if (mode === "strength") return h + viewSnack();
   const st = plan.stage;
   if (plan.kind === "rest") {
     h += '<div class="card quest rest"><div class="scene night wide">' + RQART.svg("rest") + '</div><div class="eyebrow">QUEST CLEAR</div><h2>오늘 퀘스트 클리어!</h2>' +
@@ -352,13 +365,10 @@ function viewToday() {
       '<button class="btn" data-play="' + st.idx + '">▶ 시작하기</button>' +
       (rep ? '<button class="link" data-play="' + plan.next.idx + '">그래도 다음 판(' + esc(plan.next.id) + ")으로 갈래요</button>" : "") + "</div>";
   }
-  const ns = RQ.snacksOn(S, t);
-  h += '<div class="card"><div class="eyebrow">SNACK WORKOUT</div><div style="font-size:17px;margin:4px 0 12px">틈새 운동 한 세트 어때요?' + (ns ? ' <span style="color:var(--soft)">· 오늘 ' + ns + "세트</span>" : "") + '</div><div class="quick">' +
-    ["squat", "wallpush", "calf"].map((id) => '<button data-snackgo="' + id + '">' + RQART.ex(id, 0) + esc((RQ.SNACK[id].short || RQ.SNACK[id].name) + " " + RQ.snackN(S, id) + "개") + "</button>").join("") +
-    '</div><button class="link" data-tab2="snack">다른 운동 보기</button></div>';
   const hasManual = S.log.some((e) => e.day === t && e.kind === "manual");
-  h += '<div class="card"><div class="eyebrow">EXTRA</div><div style="font-size:17px;margin:4px 0 12px">앱 없이 걷거나 운동했나요?</div><div class="manual">' +
-    '<button class="btn green small" id="add10">+10분 기록</button>' + (hasManual ? '<button class="undo" id="undo10">되돌리기</button>' : "") + "</div></div>";
+  h += '<div class="card"><div class="eyebrow">WALK</div><div style="font-size:17px;margin:4px 0 12px">앱 없이 걸었나요?</div><div class="manual">' +
+    '<button class="btn green small" id="add10">+10분 기록</button>' + (hasManual ? '<button class="undo" id="undo10">되돌리기</button>' : "") + "</div></div>" +
+    '<button class="link" data-tab2="map">달리기 지도 전체 보기</button>';
   return h;
 }
 
@@ -430,8 +440,8 @@ function viewLog() {
 // ---------------- snack tab ----------------
 function viewSnack() {
   const t = today(), n = RQ.snacksOn(S, t);
-  let h = '<div class="card"><div class="eyebrow">SNACK WORKOUT</div><h2>틈새 운동</h2><div class="sub">생각날 때 한 세트씩. 시작하면 박자에 맞춰 개수를 세어 줘요.' +
-    (n ? '<br>오늘 <b style="color:var(--ink)">' + n + "세트</b> 했어요!" : "") + "</div></div>";
+  let h = '<div class="sub" style="margin:0 4px 12px">생각날 때 한 세트씩. 시작하면 박자에 맞춰 개수를 세어 줘요.' +
+    (n ? ' 오늘 <b style="color:var(--ink)">' + n + "세트</b> 했어요!" : "") + "</div>";
   h += '<div class="snack-grid">' + RQ.SNACKS.map((x) => {
     const c = RQ.snacksOn(S, t, x.id);
     return '<button class="sn" data-snack="' + x.id + '"><div class="pic">' + RQART.ex(x.id, 1) + "</div>" + (c ? '<span class="cnt">✓ ' + c + "</span>" : "") +
@@ -532,6 +542,7 @@ function render() {
   document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("on", b.dataset.tab === tab));
 }
 function go(t) {
+  if (t === "snack") { S.mode = "strength"; t = "today"; }
   tab = t; render(); if (t !== "today") armBack();
   if (t === "map") { const n = $("nownode"); scrollTo(0, n ? n.getBoundingClientRect().top + scrollY - 220 : 0); } else scrollTo(0, 0);
 }
@@ -676,6 +687,7 @@ document.addEventListener("click", (e) => {
   const t = e.target;
   const nb = t.closest("nav button"); if (nb) return go(nb.dataset.tab);
   const t2 = t.closest("[data-tab2]"); if (t2) return go(t2.dataset.tab2);
+  const md = t.closest("[data-mode]"); if (md) { S.mode = md.dataset.mode; persist(); return render(); }
   const sg = t.closest("[data-snackgo]"); if (sg) return startSnack(sg.dataset.snackgo);
   const sn = t.closest("[data-snack]"); if (sn) return openSnackSheet(sn.dataset.snack);
   const stp = t.closest("[data-stepn]");
