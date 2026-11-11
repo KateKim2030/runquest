@@ -653,8 +653,8 @@ function viewStretch() {
     RQ.ROUTINES.map((r) => {
       const steps = RQ.routineSteps(r.id), did = RQ.stretchesOn(S, t, r.id);
       return '<div class="card">' + (did ? '<span class="rt-done">오늘 ✓</span>' : "") + '<div class="eyebrow">약 ' + Math.round(RQ.routineTotal(steps) / 60) + "분 · " + r.items.length + "동작</div>" +
-        '<h2 style="font-size:25px">' + esc(r.name) + '</h2><div class="sub">' + esc(r.desc) + '</div><div class="rt-pics">' +
-        r.items.map((id) => '<div><span class="mi">' + RQART.st(id, 0) + "</span>" + esc(RQ.STRETCH[id].name.replace(" 늘리기", "")) + "</div>").join("") +
+        '<h2 style="font-size:25px">' + esc(r.name) + '</h2><div class="sub">' + esc(r.desc) + '</div><div class="rt-pics" style="grid-template-columns:repeat(' + r.items.length + ',1fr)">' +
+        r.items.map((id) => '<div><span class="mi">' + RQART.st(id, 0) + "</span>" + esc(RQ.STRETCH[id].short || RQ.STRETCH[id].name.replace(" 늘리기", "")) + "</div>").join("") +
         '</div><button class="btn" data-stretchgo="' + r.id + '">▶ 시작하기</button></div>';
     }).join("");
 }

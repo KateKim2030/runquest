@@ -230,17 +230,20 @@
     hamstring: { name: "허벅지 뒤 늘리기", sec: 20, sides: true, tip: "앉아서 한 다리를 펴고 발끝 쪽으로 천천히 숙여요. 등은 길게." },
     quad: { name: "허벅지 앞 늘리기", sec: 20, sides: true, tip: "서서 한 발을 뒤로 잡아 엉덩이 쪽으로. 벽을 짚어도 좋아요." },
     glute: { name: "엉덩이 늘리기", sec: 20, sides: true, tip: "의자에 앉아 한 발목을 반대쪽 무릎에 올리고 살짝 숙여요." },
-    neck: { name: "목 옆 늘리기", sec: 20, sides: true, tip: "한 손으로 머리를 옆으로 살며시 당겨요. 어깨는 내리고." },
-    chest: { name: "가슴 펴기", sec: 30, sides: false, tip: "등 뒤로 깍지를 끼고 가슴을 활짝. 어깨를 뒤로 모아요." },
+    neck: { name: "목 옆 늘리기", short: "목 옆", sec: 20, sides: true, tip: "한 손으로 머리를 옆으로 살며시 당겨요. 어깨는 내리고." },
+    chest: { name: "가슴 펴기", short: "가슴 펴기", sec: 30, sides: false, tip: "등 뒤로 깍지를 끼고 가슴을 활짝. 어깨를 뒤로 모아요." },
     hipflexor: { name: "골반 앞쪽 늘리기", sec: 20, sides: true, tip: "한 무릎을 꿇고 골반을 앞으로 밀어요. 허리는 꺾지 않아요." },
     catcow: { name: "고양이-소 자세", sec: 30, sides: false, tip: "네발 자세에서 숨에 맞춰 등을 둥글게 말았다가 내려요." },
     child: { name: "아기 자세", sec: 40, sides: false, tip: "무릎 꿇고 엉덩이를 뒤꿈치 쪽으로, 팔은 앞으로 길게. 숨을 편하게." },
     kneehug: { name: "무릎 당기기", sec: 20, sides: true, tip: "누워서 한 무릎을 가슴으로 끌어안아요." },
-    twist: { name: "누워서 허리 비틀기", sec: 25, sides: true, tip: "누워서 두 무릎을 한쪽으로 넘기고 시선은 반대로." },
+    deskbend: { name: "책상 짚고 등 펴기", short: "등 펴기", sec: 30, sides: false, tip: "책상이나 의자 등받이를 짚고 엉덩이를 뒤로 빼며 등을 길게 펴요." },
+    seattwist: { name: "앉아서 몸통 돌리기", short: "몸통 돌리기", sec: 20, sides: true, tip: "의자에 앉아 등받이를 잡고 몸통을 천천히 돌려요. 시선도 뒤로." },
+    hipstand: { name: "서서 골반 앞쪽 늘리기", short: "골반 앞쪽", sec: 20, sides: true, tip: "한 발을 뒤로 빼고 골반을 앞으로 밀어요. 책상을 짚어도 좋아요." },
+    twist: { name: "누워서 허리 비틀기", short: "허리 비틀기", sec: 25, sides: true, tip: "누워서 두 무릎을 한쪽으로 넘기고 시선은 반대로." },
   };
   const ROUTINES = [
     { id: "afterrun", name: "달리기 후 스트레칭", desc: "뛴 다리를 풀어 줘요", items: ["calf", "hamstring", "quad", "glute"] },
-    { id: "desk", name: "오래 앉은 뒤 스트레칭", desc: "굳은 목 · 어깨 · 골반 펴기", items: ["neck", "chest", "hipflexor", "catcow"] },
+    { id: "desk", name: "오래 앉은 뒤 스트레칭", desc: "매트 없이 서거나 의자에 앉아서 · 사무실용", items: ["neck", "chest", "deskbend", "seattwist", "hipstand"] },
     { id: "bed", name: "자기 전 스트레칭", desc: "바닥에서 편하게 마무리", items: ["catcow", "child", "kneehug", "twist"] },
   ];
   const ROUTINE = Object.fromEntries(ROUTINES.map((x) => [x.id, x]));

@@ -139,7 +139,9 @@ for (let i = 0; i < 60; i++) { const q = RQ.strengthQuest(HQ, RQ.addDays("2026-1
 ok(RQ.ROUTINES.length === 3 && RQ.ROUTINES.every((r) => r.items.every((id) => RQ.STRETCH[id])), "3 routines, all moves defined");
 const rs = RQ.routineSteps("afterrun");
 ok(rs.length === 8 && rs[0].side === "왼쪽" && rs[1].side === "오른쪽" && RQ.routineTotal(rs) === 200, "afterrun = 4 moves x 2 sides, 3:20");
-ok(RQ.ROUTINES.every((r) => { const tt = RQ.routineTotal(RQ.routineSteps(r.id)); return tt >= 150 && tt <= 215; }), "every routine is about 3 minutes");
+ok(RQ.ROUTINES.every((r) => { const tt = RQ.routineTotal(RQ.routineSteps(r.id)); return tt >= 150 && tt <= 230; }), "every routine is 3 to 4 minutes");
+const FLOOR = ["hamstring", "hipflexor", "catcow", "child", "kneehug", "twist"]; // need a mat or kneeling
+ok(RQ.ROUTINE.desk.items.every((id) => !FLOOR.includes(id)) && RQ.ROUTINE.desk.items.length === 5, "office routine has no floor moves");
 let rp = RQ.routinePos(rs, 2);
 ok(rp.i === 0 && rp.phase === "prep" && rp.left === 3, "starts with a get-ready count");
 rp = RQ.routinePos(rs, 5 + 12);
