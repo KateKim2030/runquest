@@ -203,6 +203,41 @@ nav button.on .ic { opacity: 1; }
 .rate button.sel { border-color: var(--hi, var(--gold)); background: var(--sel); }
 .rate-q { text-align: center; color: var(--soft); font-size: 15px; margin-top: 14px; }
 .hint { text-align: center; color: var(--soft); font-size: 14px; min-height: 20px; margin: 4px 0 12px; }
+
+/* snack workouts */
+.snack-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sn { background: var(--bg2); border: 2px solid var(--line); border-radius: 20px; padding: 10px 10px 12px; text-align: left; position: relative; }
+.sn:active { transform: scale(.97); }
+.sn .pic { background: var(--walk); border-radius: 14px; aspect-ratio: 1.15; display: flex; justify-content: center; overflow: hidden; }
+.sn .pic svg { height: 100%; }
+.sn b { display: block; font-size: 17px; margin-top: 8px; font-weight: 400; }
+.sn small { color: var(--soft); font-size: 14px; }
+.sn .cnt { position: absolute; top: 16px; right: 16px; background: var(--ink); color: var(--bg2); border-radius: 99px; font-size: 12px; padding: 3px 8px 2px; }
+.quick { display: flex; gap: 8px; }
+.quick button { flex: 1; min-width: 0; background: var(--walk); border-radius: 16px; padding: 6px 4px 10px; font-size: 14px; box-shadow: 0 4px 0 var(--walk-d); color: var(--ink); }
+.quick button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--walk-d); }
+.quick svg { width: 64px; height: 64px; display: block; margin: 0 auto 2px; }
+.bigpic { background: var(--walk); border-radius: 20px; height: 190px; display: flex; justify-content: center; margin-bottom: 14px; }
+.bigpic svg { height: 100%; }
+.stepper { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 4px 0 18px; }
+.stepper button { width: 54px; height: 54px; border-radius: 50%; background: var(--card); font-size: 30px; line-height: 1; font-family: var(--num); box-shadow: 0 4px 0 var(--edge); }
+.stepper button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--edge); }
+.stepper b { font-family: var(--num); font-weight: 400; font-size: 42px; min-width: 120px; text-align: center; }
+.stepper b small { font-family: var(--fun); font-size: 18px; margin-left: 2px; }
+#snack { background: var(--bg); color: var(--ink); }
+.sk { position: absolute; inset: 0; display: flex; flex-direction: column; padding: calc(14px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom)); max-width: 520px; margin: 0 auto; }
+.sk-top { display: flex; justify-content: space-between; align-items: center; font-size: 19px; }
+.sk-top button { font-size: 15px; color: var(--soft); padding: 8px; }
+.sk-pic { position: relative; width: min(74vw, 290px, 36vh); aspect-ratio: 1; margin: 10px auto 0; background: var(--walk); border-radius: 50%; overflow: hidden; flex: none; }
+.sk-pic svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sk-pic svg.off { visibility: hidden; }
+.sk-num { font-family: var(--num); font-size: clamp(88px, 27vw, 136px); text-align: center; line-height: 1; margin-top: 12px; }
+.sk-num small { font-size: .3em; color: var(--soft); margin-left: 4px; }
+.sk-cue { text-align: center; font-family: var(--title); font-size: 30px; min-height: 40px; color: var(--hi); margin-top: 4px; }
+.sk-bar { height: 12px; border-radius: 6px; background: var(--card); overflow: hidden; margin: 14px 0 18px; }
+.sk-bar i { display: block; height: 100%; width: 0; background: var(--ink); border-radius: 6px; transition: width .25s linear; }
+.sk-sp { flex: 1; }
+.sk-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 </style>
 </head>
 <body>
@@ -218,12 +253,14 @@ nav button.on .ic { opacity: 1; }
 <nav>
   <button data-tab="today" class="on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>오늘</button>
   <button data-tab="map"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 6l6-2.5 6 2.5 6-2.5v14.5l-6 2.5-6-2.5-6 2.5z"/><path d="M9 3.5V18M15 6v14.5"/></svg>지도</button>
+  <button data-tab="snack"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/></svg>틈새</button>
   <button data-tab="log"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 20V12M12 20V5M19 20v-9M3 20.5h18"/></svg>기록</button>
 </nav>
 
 <div class="ov" id="sheet"><div class="sheet-bg" data-close></div><div class="sheet" id="sheetbox"></div></div>
 <div class="ov" id="dialog"><div class="modal"><div class="box" id="dialogbox"></div></div></div>
 <div class="ov" id="result"><div class="modal"><div class="box" id="resultbox"></div></div></div>
+<div class="ov" id="snack"><div class="sk" id="skbox"></div></div>
 <div class="ov" id="run">
   <div class="rs">
     <div class="rs-top"><span id="r-stage"></span><span>남은 시간 <b id="r-total"></b></span></div>
@@ -314,6 +351,10 @@ function viewToday() {
       '<button class="btn" data-play="' + st.idx + '">▶ 시작하기</button>' +
       (rep ? '<button class="link" data-play="' + plan.next.idx + '">그래도 다음 판(' + esc(plan.next.id) + ")으로 갈래요</button>" : "") + "</div>";
   }
+  const ns = RQ.snacksOn(S, t);
+  h += '<div class="card"><div class="eyebrow">SNACK WORKOUT</div><div style="font-size:17px;margin:4px 0 12px">틈새 운동 한 세트 어때요?' + (ns ? ' <span style="color:var(--soft)">· 오늘 ' + ns + "세트</span>" : "") + '</div><div class="quick">' +
+    ["squat", "wallpush", "calf"].map((id) => '<button data-snackgo="' + id + '">' + RQART.ex(id, 0) + esc((RQ.SNACK[id].short || RQ.SNACK[id].name) + " " + RQ.snackN(S, id) + "개") + "</button>").join("") +
+    '</div><button class="link" data-tab2="snack">다른 운동 보기</button></div>';
   const hasManual = S.log.some((e) => e.day === t && e.kind === "manual");
   h += '<div class="card"><div class="eyebrow">EXTRA</div><div style="font-size:17px;margin:4px 0 12px">앱 없이 걷거나 운동했나요?</div><div class="manual">' +
     '<button class="btn green small" id="add10">+10분 기록</button>' + (hasManual ? '<button class="undo" id="undo10">되돌리기</button>' : "") + "</div></div>";
@@ -375,6 +416,7 @@ function viewLog() {
   const rateIc = { easy: "😎", ok: "🙂", hard: "🥵" };
   h += '<div class="card"><div class="eyebrow">RECORDS</div>' + (recent.length ? recent.map((e) => {
     const [, m, d] = e.day.split("-");
+    if (e.kind === "snack") return '<div class="rec"><span class="when">' + +e.day.split("-")[1] + "/" + +e.day.split("-")[2] + '</span><span class="what">' + (e.xp ? "◆ " : "◇ ") + "틈새 · " + esc(RQ.snackLabel(e.snack, e.n)) + '</span><span class="t">' + (e.sec < 60 ? e.sec + "초" : Math.round(e.sec / 60) + "분") + "</span></div>";
     const what = e.kind === "manual" ? "🚶 직접 기록" : (e.done ? "★ " : "⏸ ") + esc(e.stage) + (e.done ? " 클리어" : " 중간에 멈춤");
     return '<div class="rec"><span class="when">' + +m + "/" + +d + '</span><span class="what">' + what + " " + (rateIc[e.rating] || "") + '</span><span class="t">' + Math.round(e.sec / 60) + "분</span></div>";
   }).join("") : '<div class="empty">아직 기록이 없어요. 첫 판을 시작해 볼까요?</div>') + "</div>";
@@ -384,10 +426,108 @@ function viewLog() {
   return h;
 }
 
+// ---------------- snack tab ----------------
+function viewSnack() {
+  const t = today(), n = RQ.snacksOn(S, t);
+  let h = '<div class="card"><div class="eyebrow">SNACK WORKOUT</div><h2>틈새 운동</h2><div class="sub">생각날 때 한 세트씩. 시작하면 박자에 맞춰 개수를 세어 줘요.' +
+    (n ? '<br>오늘 <b style="color:var(--ink)">' + n + "세트</b> 했어요!" : "") + "</div></div>";
+  h += '<div class="snack-grid">' + RQ.SNACKS.map((x) => {
+    const c = RQ.snacksOn(S, t, x.id);
+    return '<button class="sn" data-snack="' + x.id + '"><div class="pic">' + RQART.ex(x.id, 1) + "</div>" + (c ? '<span class="cnt">✓ ' + c + "</span>" : "") +
+      "<b>" + esc(x.name) + "</b><small>" + (x.kind === "time" ? RQ.snackN(S, x.id) + "초" : RQ.snackN(S, x.id) + "개") + "</small></button>";
+  }).join("") + "</div>";
+  return h;
+}
+function openSnackSheet(id) {
+  const x = RQ.SNACK[id], n = RQ.snackN(S, id), unit = x.kind === "time" ? "초" : "개";
+  $("sheetbox").innerHTML = '<div class="bigpic">' + RQART.ex(id, 1) + '</div><div class="eyebrow">SNACK WORKOUT</div><h2>' + esc(x.name) + '</h2><p class="desc" style="margin-top:6px">' + esc(x.tip) + "</p>" +
+    '<div class="stepper"><button data-stepn="-1" aria-label="줄이기">−</button><b>' + n + "<small>" + unit + '</small></b><button data-stepn="1" aria-label="늘리기">+</button></div>' +
+    '<button class="btn" data-snackgo="' + id + '">▶ 시작하기</button>';
+  $("sheetbox").dataset.snack = id;
+  $("sheet").classList.add("show");
+}
+
+// ---------------- snack engine ----------------
+// SK = { id, n, startAt, pausedMs, pausedAt, said, done } — counts reps on a fixed tempo after a 3-second ready count.
+let SK = null, skTimer = null;
+const READY = 3;
+const skEl = () => ((SK.pausedAt || Date.now()) - SK.startAt - SK.pausedMs) / 1000 - READY;
+function startSnack(id) {
+  if (R) return;
+  audioInit(); closeAll();
+  const x = RQ.SNACK[id];
+  SK = { id, n: RQ.snackN(S, id), startAt: Date.now(), pausedMs: 0, pausedAt: 0, said: {}, done: 0 };
+  $("skbox").innerHTML = '<div class="sk-top"><b style="font-weight:400">' + esc(x.name) + '</b><button id="sk-stop">그만하기</button></div>' +
+    '<div class="sk-pic">' + RQART.ex(id, 0).replace("<svg", '<svg id="sk-a"') + RQART.ex(id, 1).replace("<svg", '<svg id="sk-b" class="off"') + "</div>" +
+    '<div class="sk-num" id="sk-num"></div><div class="sk-cue" id="sk-cue"></div><div class="sk-bar"><i id="sk-bar"></i></div><div class="sk-sp"></div>' +
+    '<div class="sk-btns"><button class="btn ghost" id="sk-pause">일시정지</button><button class="btn" id="sk-stop2">끝내기</button></div>';
+  $("snack").classList.add("show"); document.body.style.overflow = "hidden";
+  wake(); clearInterval(skTimer); skTimer = setInterval(skTick, 100); skTick();
+}
+function skOnce(key, fn) { if (!SK.said[key]) { SK.said[key] = 1; fn(); } }
+function skTick() {
+  if (!SK) return;
+  const x = RQ.SNACK[SK.id], el = skEl(), paused = !!SK.pausedAt;
+  let frame = 0, num = "", cue = "", prog = 0;
+  if (el < 0) {
+    const c = Math.ceil(-el);
+    num = c; cue = "준비";
+    if (!paused) skOnce("r" + c, () => { say(RQ.koNum(c)); beep(520, .1); });
+  } else if (x.kind === "reps") {
+    skOnce("go", () => { say("시작!"); beep(880, .18); });
+    const done = Math.min(SK.n, Math.floor(el / x.tempo));
+    if (done > SK.done) { SK.done = done; say(RQ.koNum(done)); beep(done === SK.n ? 1047 : 740, .12); buzz(35); }
+    if (done >= SK.n) return skFinish(true);
+    frame = (el % x.tempo) / x.tempo < 0.5 ? 1 : 0;
+    num = done + "<small>/ " + SK.n + "</small>";
+    cue = paused ? "잠깐 멈춤" : x.say[frame ? 0 : 1];
+    if (!paused && SK.n - done === 1) cue = "마지막! " + cue;
+    prog = (el / x.tempo) / SK.n;
+  } else {
+    skOnce("go", () => { say("시작!"); beep(880, .18); });
+    const left = SK.n - el;
+    SK.done = Math.min(SK.n, Math.floor(el));
+    if (left <= 0) { SK.done = SK.n; return skFinish(true); }
+    const s = Math.ceil(left);
+    if (!paused) {
+      if (SK.n >= 30 && s === Math.ceil(SK.n / 2)) skOnce("half", () => say("절반 지났어요!"));
+      if (s === 10 && SK.n > 15) skOnce("t10", () => say("10초 남았어요."));
+      if (s <= 3) skOnce("c" + s, () => { say(RQ.koNum(s)); beep(620, .1); });
+    }
+    frame = x.tempo ? Math.floor(el / (x.tempo / 2)) % 2 : Math.floor(el / 1.5) % 2;
+    num = s + "<small>초</small>";
+    cue = paused ? "잠깐 멈춤" : x.id === "knee" ? "번갈아 들어요" : "버텨요!";
+    prog = el / SK.n;
+  }
+  $("sk-a").classList.toggle("off", frame === 1); $("sk-b").classList.toggle("off", frame !== 1);
+  $("sk-num").innerHTML = num; $("sk-cue").textContent = cue;
+  $("sk-bar").style.width = Math.max(0, Math.min(100, prog * 100)).toFixed(1) + "%";
+  $("sk-pause").textContent = paused ? "▶ 계속" : "일시정지";
+}
+function skPause() {
+  if (!SK) return;
+  if (SK.pausedAt) { SK.pausedMs += Date.now() - SK.pausedAt; SK.pausedAt = 0; wake(); } else SK.pausedAt = Date.now();
+  skTick();
+}
+function skFinish(complete) {
+  if (!SK) return;
+  clearInterval(skTimer); skTimer = null; unwake();
+  const x = RQ.SNACK[SK.id], id = SK.id, done = SK.done, sec = Math.max(0, Math.min(skEl(), x.kind === "time" ? SK.n : SK.n * x.tempo));
+  SK = null;
+  if (!done) { $("snack").classList.remove("show"); document.body.style.overflow = ""; return render(); }
+  const out = RQ.addSnack(S, id, done, sec, today()); persist();
+  if (complete) { say("끝! 잘했어요."); buzz(BUZZ.done); beep(784, .15); setTimeout(() => beep(1047, .3), 170); }
+  const unit = x.kind === "time" ? "초" : "개", n = RQ.snacksOn(S, today());
+  $("skbox").innerHTML = '<div class="sk-sp"></div><div class="burst">' + RQART.svg(out.xp ? "cheer" : "tired") + "</div>" +
+    '<div class="clear-title" style="font-size:32px">' + (out.full ? esc(x.name) + " " + done + unit + " 완료!" : esc(x.name) + " " + done + unit + " 했어요") + "</div>" +
+    '<div class="gain">' + (out.xp ? "+" + out.xp + " XP" : "") + "<small>" + (out.xp ? "오늘 틈새 운동 " + n + "세트째" : "절반 넘게 하면 한 세트로 쳐요. 다음엔 조금 더!") + "</small></div>" +
+    '<div class="sk-sp"></div><div class="sk-btns"><button class="btn ghost" id="sk-close">닫기</button><button class="btn" data-snackgo="' + id + '">한 세트 더</button></div>';
+}
+
 // ---------------- render ----------------
 function render() {
   drawHeader();
-  $("view").innerHTML = tab === "today" ? viewToday() : tab === "map" ? viewMap() : viewLog();
+  $("view").innerHTML = tab === "today" ? viewToday() : tab === "map" ? viewMap() : tab === "snack" ? viewSnack() : viewLog();
   document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("on", b.dataset.tab === tab));
 }
 function go(t) {
@@ -533,6 +673,11 @@ let R_res = null;
 document.addEventListener("click", (e) => {
   const t = e.target;
   const nb = t.closest("nav button"); if (nb) return go(nb.dataset.tab);
+  const t2 = t.closest("[data-tab2]"); if (t2) return go(t2.dataset.tab2);
+  const sg = t.closest("[data-snackgo]"); if (sg) return startSnack(sg.dataset.snackgo);
+  const sn = t.closest("[data-snack]"); if (sn) return openSnackSheet(sn.dataset.snack);
+  const stp = t.closest("[data-stepn]");
+  if (stp) { const id = $("sheetbox").dataset.snack, x = RQ.SNACK[id]; RQ.setSnackN(S, id, RQ.snackN(S, id) + +stp.dataset.stepn * x.step); persist(); return openSnackSheet(id); }
   const pl = t.closest("[data-play]"); if (pl) return startRun(+pl.dataset.play);
   const nd = t.closest("[data-stage]"); if (nd) return openStage(+nd.dataset.stage);
   if (t.closest("[data-close]")) return closeAll();
@@ -553,6 +698,9 @@ document.addEventListener("click", (e) => {
     case "resetAll":
       return dialog('<h2>처음부터 다시 할까요?</h2><p>깬 판, XP, 기록이 모두 지워지고 되돌릴 수 없어요.</p><button class="btn" id="resetYes">모두 지우고 다시 시작</button><button class="btn ghost" data-close>취소</button>');
     case "resetYes": S = RQ.fresh(); persist(); closeAll(); render(); return intro();
+    case "sk-pause": return skPause();
+    case "sk-stop": case "sk-stop2": return skFinish(false);
+    case "sk-close": $("snack").classList.remove("show"); document.body.style.overflow = ""; return render();
     case "r-pause": return togglePause();
     case "r-stop":
       return dialog('<h2>그만할까요?</h2><p>지금까지 움직인 ' + mins(elapsed()) + '은 기록돼요. 판은 끝까지 해야 깨져요.</p><button class="btn" id="stopYes">그만하기</button><button class="btn ghost" data-close>계속 달리기</button>');
@@ -562,7 +710,7 @@ document.addEventListener("click", (e) => {
   }
   if (t.closest("#dimmer")) $("dimmer").classList.remove("show");
 });
-document.addEventListener("visibilitychange", () => { if (!document.hidden && R) { wake(); tick(); } });
+document.addEventListener("visibilitychange", () => { if (!document.hidden && R) { wake(); tick(); } if (!document.hidden && SK) { wake(); skTick(); } });
 // a running stage cannot be closed by the Android back button by accident
 addEventListener("beforeunload", (e) => { if (R) { e.preventDefault(); e.returnValue = ""; } });
 

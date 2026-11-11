@@ -70,5 +70,20 @@ let day = "2026-12-01";
 for (let i = 4; i < 24; i++) { RQ.finish(A, i, RQ.totalSec(RQ.STAGES[i]), true, day); day = RQ.addDays(day, 2); }
 ok(A.cleared === 24 && RQ.todayPlan(A, day).kind === "allclear", "all 24 cleared");
 
+// snack workouts
+const N = RQ.start(RQ.fresh(), 2);
+ok(RQ.SNACKS.length === 9 && RQ.snackN(N, "squat") === 10, "9 snacks, squat 10");
+ok(RQ.setSnackN(N, "squat", 15) === 15 && RQ.snackN(N, "squat") === 15 && RQ.setSnackN(N, "squat", 99) === 30, "squat count adjustable, max 30");
+RQ.setSnackN(N, "squat", 10);
+let sr = RQ.addSnack(N, "squat", 10, 31, "2026-11-11");
+ok(sr.xp === 10 && sr.full && RQ.snacksOn(N, "2026-11-11") === 1, "full squat set +10xp");
+sr = RQ.addSnack(N, "squat", 3, 9, "2026-11-11");
+ok(sr.xp === 0 && RQ.snacksOn(N, "2026-11-11") === 1, "3 of 10 does not count as a set");
+ok(RQ.addSnack(N, "plank", 20, 20, "2026-11-11").xp === 10, "plank 20 of 30 sec counts");
+ok(RQ.koNum(1) === "하나" && RQ.koNum(10) === "열" && RQ.koNum(15) === "열다섯" && RQ.koNum(20) === "스물" && RQ.koNum(30) === "서른", "korean counting");
+const AD = RQ.fresh();
+for (let i = 0; i < 10; i++) RQ.addSnack(AD, "squat", 10, 31, "2026-11-11");
+ok(RQ.activeDays(AD, "2026-11-11", "2026-11-11").size === 1, "10 snack sets (5 min+) make an active day");
+
 console.log(pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);

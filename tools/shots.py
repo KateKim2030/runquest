@@ -25,6 +25,12 @@ STATES = {
     "7_dim": (st(), 'startRun(4);R.startAt-=372e3;tick();document.getElementById("r-dim").click()'),
     "8_clear": (st(xp=200), "startRun(4);R.startAt-=1381e3;tick()"),
     "9_rest": (st(cleared=5, lastClearDay=T, xp=260, log=log), ""),
+    "2b_today_low": (st(), 'scrollTo(0,640)'),
+    "11_snack": (st(xp=40, log=[{"day": T, "kind": "snack", "snack": "squat", "n": 10, "full": True, "sec": 30, "done": True, "xp": 10}]), 'go("snack")'),
+    "12_sheet": (st(), 'go("snack");openSnackSheet("squat")'),
+    "13_count": (st(), 'startSnack("squat");SK.startAt-=(3+4*3+0.6)*1000;skTick()'),
+    "14_plank": (st(), 'startSnack("plank");SK.startAt-=(3+12.2)*1000;skTick()'),
+    "15_done": (st(), 'startSnack("squat");SK.startAt-=(3+30.2)*1000;skTick()'),
     "10_log": (st(cleared=7, xp=900, log=log + [{"day": T, "kind": "manual", "sec": 600, "done": True, "xp": 10}]), 'go("log")'),
 }
 for name, (state, act) in STATES.items():

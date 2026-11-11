@@ -90,6 +90,49 @@
     tired: () => shadow(104, 46) + figure(POSES.tired, "open") + drop(168, 74, 0.9) + drop(178, 96, 0.7) + drop(160, 56, 0.6),
     rest: () => shadow(100, 72) + sleepBag(),
   };
+
+  // ---------- 틈새 운동: two frames per exercise (A = start/rest, B = effort) ----------
+  const wallR = '<rect x="164" y="10" width="30" height="176" fill="#e8dac4" stroke="' + K.ink + '" stroke-width="3"/><path d="M164 50h30M164 92h30M164 134h30M179 10v40M179 92v42" stroke="' + K.ink + '" stroke-width="2" opacity=".35"/>';
+  const wallL = '<rect x="6" y="10" width="30" height="176" fill="#e8dac4" stroke="' + K.ink + '" stroke-width="3"/><path d="M6 50h30M6 92h30M6 134h30M21 10v40M21 92v42" stroke="' + K.ink + '" stroke-width="2" opacity=".35"/>';
+  const mat = '<rect x="14" y="180" width="172" height="8" rx="4" fill="' + K.sky + '" stroke="' + K.ink + '" stroke-width="2.5"/>';
+  const STAND = { head: [100, 36], neck: [100, 60], hip: [100, 110], ba: [[96, 84], [94, 108]], fa: [[104, 84], [106, 108]], bl: [[98, 146], [94, 178]], fl: [[102, 146], [106, 178]] };
+  const EX = {
+    squat: [
+      { p: { head: [100, 36], neck: [100, 60], hip: [100, 110], ba: [[120, 66], [140, 68]], fa: [[122, 64], [142, 62]], bl: [[98, 146], [92, 178]], fl: [[104, 146], [108, 178]] }, m: "smile" },
+      { p: { head: [114, 66], neck: [104, 90], hip: [80, 132], ba: [[126, 92], [148, 90]], fa: [[128, 90], [150, 86]], bl: [[112, 140], [96, 178]], fl: [[118, 138], [106, 178]] }, m: "grit" }],
+    wallpush: [
+      { p: { head: [134, 44], neck: [122, 66], hip: [96, 120], ba: [[140, 70], [160, 72]], fa: [[141, 67], [160, 68]], bl: [[84, 150], [70, 178]], fl: [[86, 150], [76, 178]] }, m: "smile", bg: wallR },
+      { p: { head: [142, 58], neck: [132, 78], hip: [102, 122], ba: [[140, 100], [160, 74]], fa: [[144, 98], [160, 70]], bl: [[88, 151], [70, 178]], fl: [[90, 151], [76, 178]] }, m: "grit", bg: wallR }],
+    calf: [{ p: STAND, m: "smile" }, { p: STAND, m: "grit", up: 9 }],
+    lunge: [
+      { p: { head: [100, 36], neck: [100, 60], hip: [100, 110], ba: [[86, 86], [94, 108]], fa: [[114, 86], [106, 108]], bl: [[98, 146], [94, 178]], fl: [[102, 146], [106, 178]] }, m: "smile" },
+      { p: { head: [100, 56], neck: [100, 80], hip: [100, 130], ba: [[86, 106], [94, 128]], fa: [[114, 106], [106, 128]], bl: [[84, 166], [60, 178]], fl: [[130, 136], [130, 178]] }, m: "grit" }],
+    bridge: [
+      { p: { head: [38, 162], neck: [60, 166], hip: [108, 168], ba: [[82, 175], [104, 177]], fa: [[84, 173], [106, 175]], bl: [[132, 138], [148, 178]], fl: [[136, 136], [152, 178]] }, m: "smile", bg: mat },
+      { p: { head: [38, 162], neck: [60, 164], hip: [110, 138], ba: [[82, 175], [104, 177]], fa: [[84, 173], [106, 175]], bl: [[138, 124], [148, 178]], fl: [[142, 122], [152, 178]] }, m: "grit", bg: mat }],
+    birddog: [
+      { p: { head: [154, 102], neck: [136, 116], hip: [80, 120], ba: [[134, 146], [134, 176]], fa: [[138, 146], [138, 176]], bl: [[78, 170], [48, 176]], fl: [[82, 170], [52, 176]] }, m: "smile", bg: mat },
+      { p: { head: [154, 102], neck: [136, 116], hip: [80, 120], ba: [[134, 146], [134, 176]], fa: [[160, 112], [184, 106]], bl: [[50, 118], [20, 116]], fl: [[82, 170], [52, 176]] }, m: "grit", bg: mat }],
+    knee: [
+      { p: { head: [100, 36], neck: [100, 60], hip: [100, 110], ba: [[90, 84], [96, 102]], fa: [[112, 80], [118, 62]], bl: [[98, 146], [94, 178]], fl: [[126, 112], [122, 144]] }, m: "smile" },
+      { p: { head: [100, 36], neck: [100, 60], hip: [100, 110], ba: [[110, 80], [116, 62]], fa: [[92, 84], [98, 102]], bl: [[124, 114], [120, 146]], fl: [[102, 146], [106, 178]] }, m: "smile" }],
+    plank: [
+      { p: { head: [166, 128], neck: [146, 140], hip: [98, 150], ba: [[144, 176], [166, 176]], fa: [[148, 176], [170, 176]], bl: [[68, 162], [36, 172]], fl: [[70, 164], [40, 174]] }, m: "grit", bg: mat },
+      { p: { head: [166, 126], neck: [146, 138], hip: [98, 147], ba: [[144, 176], [166, 176]], fa: [[148, 176], [170, 176]], bl: [[68, 161], [36, 172]], fl: [[70, 163], [40, 174]] }, m: "grit", bg: mat }],
+    wallsit: [
+      { p: { head: [56, 56], neck: [52, 80], hip: [56, 130], ba: [[70, 104], [90, 112]], fa: [[74, 102], [94, 108]], bl: [[100, 130], [100, 178]], fl: [[104, 128], [106, 178]] }, m: "grit", bg: wallL },
+      { p: { head: [56, 56], neck: [52, 80], hip: [56, 130], ba: [[70, 104], [90, 112]], fa: [[74, 102], [94, 108]], bl: [[100, 130], [100, 178]], fl: [[104, 128], [106, 178]] }, m: "open", bg: wallL }],
+  };
+  function ex(id, frame, opts) {
+    opts = opts || {};
+    const f = (EX[id] || EX.squat)[frame ? 1 : 0];
+    const fig = figure(f.p, f.m);
+    const body = (f.bg || "") + (f.bg === mat ? "" : shadow(f.p.hip[0], 34)) +
+      (f.up ? '<g transform="translate(0 -' + f.up + ')">' + fig + "</g>" : fig) +
+      (frame && !f.bg && id !== "knee" ? drop(150, 30, 0.7) : "");
+    const disc = opts.disc ? '<circle cx="100" cy="100" r="96" fill="' + opts.disc + '"/>' : "";
+    return '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' + disc + body + "</svg>";
+  }
   // opts.disc: draw a filled circle behind (for dark backgrounds). opts.flip: face left.
   function svg(name, opts) {
     opts = opts || {};
@@ -98,6 +141,6 @@
     const g = opts.flip ? '<g transform="translate(200 0) scale(-1 1)">' + body + "</g>" : body;
     return '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' + disc + g + "</svg>";
   }
-  const API = { svg, SCENES: Object.keys(SCENES) };
+  const API = { svg, ex, SCENES: Object.keys(SCENES), EXERCISES: Object.keys(EX) };
   if (typeof module !== "undefined" && module.exports) module.exports = API; else root.RQART = API;
 })(this);

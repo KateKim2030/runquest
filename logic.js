@@ -128,6 +128,45 @@
     state.log.push({ day: today, kind: "manual", sec: minutes * 60, done: true, xp: minutes });
     state.xp += minutes;
   }
+  // ---------- 틈새 운동 (snack workouts) ----------
+  // kind "reps": the app counts one rep every `tempo` seconds; "time": a countdown.
+  // say: [first half of a rep, second half] — the first half shows art frame B, the second frame A.
+  const SNACKS = [
+    { id: "squat", name: "스쿼트", kind: "reps", n: 10, step: 5, tempo: 3, say: ["앉아요", "일어나요"], tip: "엉덩이를 뒤로 빼며 의자에 앉듯이. 무릎은 발끝 방향으로." },
+    { id: "wallpush", name: "벽 푸시업", kind: "reps", n: 10, step: 5, tempo: 3, say: ["가까이", "밀어요"], tip: "벽에서 한 걸음 반 떨어져 손을 어깨 높이에. 몸은 일자로." },
+    { id: "calf", name: "까치발 들기", short: "까치발", kind: "reps", n: 20, step: 5, tempo: 2, say: ["올려요", "내려요"], tip: "발뒤꿈치를 천천히 올렸다 내려요. 벽을 살짝 짚어도 좋아요." },
+    { id: "lunge", name: "번갈아 런지", kind: "reps", n: 12, step: 2, tempo: 3.5, say: ["내딛어요", "돌아와요"], tip: "한 발 앞으로 내딛고 뒷무릎을 바닥 가까이. 다리를 바꿔 가며." },
+    { id: "bridge", name: "글루트 브릿지", kind: "reps", n: 15, step: 5, tempo: 3, say: ["들어요", "내려요"], tip: "누워서 무릎을 세우고, 엉덩이를 들어 어깨부터 무릎까지 일자로." },
+    { id: "birddog", name: "버드독", kind: "reps", n: 10, step: 2, tempo: 4, say: ["뻗어요", "돌아와요"], tip: "네발 자세에서 반대쪽 팔과 다리를 뻗고 잠깐 멈춰요. 좌우 번갈아." },
+    { id: "knee", name: "제자리 무릎 들기", kind: "time", n: 30, step: 10, tempo: 1.2, tip: "조용히 걷듯 무릎을 번갈아 높이 들어요. 뛰지 않아요." },
+    { id: "plank", name: "플랭크", kind: "time", n: 30, step: 10, tempo: 0, tip: "팔꿈치는 어깨 아래, 머리부터 발끝까지 일자로. 숨은 참지 않아요." },
+    { id: "wallsit", name: "벽에 기대 앉기", kind: "time", n: 30, step: 10, tempo: 0, tip: "등을 벽에 붙이고 무릎이 90도가 되게 앉아요." },
+  ];
+  const SNACK = Object.fromEntries(SNACKS.map((x) => [x.id, x]));
+  const SNACK_XP = 10;
+  const snackN = (state, id) => (state.snackPrefs && state.snackPrefs[id]) || SNACK[id].n;
+  function setSnackN(state, id, n) {
+    const x = SNACK[id], lo = x.kind === "time" ? 10 : Math.min(5, x.step * 2), hi = x.kind === "time" ? 120 : 30;
+    state.snackPrefs = { ...(state.snackPrefs || {}), [id]: Math.max(lo, Math.min(hi, n)) };
+    return state.snackPrefs[id];
+  }
+  const snackLabel = (id, n) => SNACK[id].name + " " + (SNACK[id].kind === "time" ? n + "초" : n + "개");
+  // done = how many reps (or seconds) were actually finished; a set counts once it is at least half done
+  function addSnack(state, id, done, sec, today) {
+    const x = SNACK[id], target = snackN(state, id), full = done >= target;
+    const xp = done * 2 >= target ? SNACK_XP : 0;
+    state.xp += xp;
+    state.log.push({ day: today, kind: "snack", snack: id, n: done, full, sec: Math.round(sec), done: full, xp });
+    return { xp, full };
+  }
+  const snacksOn = (state, day, id) => state.log.filter((e) => e.day === day && e.kind === "snack" && e.xp > 0 && (!id || e.snack === id)).length;
+  // Native Korean counting words for the voice: 하나, 둘 ... 스물, 서른
+  function koNum(n) {
+    const u = ["", "하나", "둘", "셋", "넷", "다섯", "여섯", "일곱", "여덟", "아홉"], t = ["", "열", "스물", "서른"];
+    if (n <= 0 || n >= 40) return String(n);
+    return t[Math.floor(n / 10)] + u[n % 10];
+  }
+
   function undoManual(state, today) {
     for (let i = state.log.length - 1; i >= 0; i--) {
       const e = state.log[i];
@@ -143,7 +182,12 @@
     while (rest >= need) { rest -= need; lv += 1; need += 100; }
     return { lv, into: rest, need };
   }
-  const activeDays = (state, from, to) => new Set(state.log.filter((e) => e.day >= from && e.day <= to && e.sec >= 300).map((e) => e.day));
+  // A day is active once its total movement reaches 5 minutes (snack sets add up)
+  function activeDays(state, from, to) {
+    const sum = {};
+    state.log.forEach((e) => { if (e.day >= from && e.day <= to) sum[e.day] = (sum[e.day] || 0) + e.sec; });
+    return new Set(Object.keys(sum).filter((d) => sum[d] >= 300));
+  }
   function week(state, today) {
     const mon = mondayOf(today);
     const days = Array.from({ length: 7 }, (_, i) => { const k = addDays(mon, i); return { day: k, min: minutesOn(state, k), future: k > today }; });
@@ -203,6 +247,7 @@
   function save(storage, state) { try { storage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 
   const API = { KEY, GOAL_MIN, WORLDS, STAGES, NAMES, totalSec, runSec, runCount, xpFor, dayKey, addDays, mondayOf,
+    SNACKS, SNACK, SNACK_XP, snackN, setSnackN, snackLabel, addSnack, snacksOn, koNum, activeDays,
     fresh, start, nodeState, todayPlan, canPlay, finish, rate, addManual, undoManual, minutesOn, level, week,
     streakWeeks, segmentAt, fmtSay, clock, runNo, announce, load, save };
   if (typeof module !== "undefined" && module.exports) module.exports = API; else root.RQ = API;
