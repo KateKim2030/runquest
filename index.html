@@ -250,6 +250,28 @@ nav button.on .ic { opacity: 1; }
 .bbar i { display: block; height: 100%; background: var(--ink); border-radius: 3px; }
 .sk-done { overflow-y: auto; }
 .sk-done .burst svg { width: 120px; height: 120px; }
+
+/* three home categories: icon on top, label under */
+.modes { grid-template-columns: repeat(3, 1fr); }
+.mode { flex-direction: column; gap: 3px; padding: 8px 4px 7px; text-align: center; }
+.mode .mi { width: 44px; height: 44px; }
+.mode b { font-size: 18px; }
+.mode small { display: none; }
+/* stretching */
+.rt-pics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0 14px; }
+.rt-pics div { text-align: center; font-size: 12px; color: var(--soft); line-height: 1.25; }
+.rt-pics .mi { display: block; aspect-ratio: 1; background: var(--walk); border-radius: 14px; overflow: hidden; margin-bottom: 4px; }
+.rt-pics .mi svg { width: 100%; height: 100%; display: block; }
+.rt-done { float: right; background: var(--gold); color: var(--ink); border-radius: 99px; font-size: 12px; padding: 3px 9px 2px; }
+.sn .tag { position: absolute; top: 16px; left: 16px; background: var(--hi); color: #fff; border-radius: 99px; font-size: 12px; padding: 3px 8px 2px; }
+.st .sk-pic { width: min(64vw, 250px, 30vh); }
+.st-name { font-family: var(--title); font-size: 27px; text-align: center; margin-top: 10px; line-height: 1.15; }
+.st-tip { text-align: center; color: var(--soft); font-size: 15px; min-height: 42px; margin-top: 4px; padding: 0 6px; line-height: 1.4; }
+.st .sk-num { font-size: clamp(60px, 19vw, 92px); margin-top: 4px; }
+.st-dots { display: flex; gap: 4px; justify-content: center; margin: 12px 0 6px; }
+.st-dots i { width: 22px; height: 8px; border-radius: 4px; background: var(--card); }
+.st-dots i.on { background: var(--ink); } .st-dots i.cur { background: var(--hi); }
+.st-next { text-align: center; font-size: 15px; color: var(--soft); min-height: 22px; }
 /* snack workouts */
 .snack-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .sn { background: var(--bg2); border: 2px solid var(--line); border-radius: 20px; padding: 10px 10px 12px; text-align: left; position: relative; }
@@ -379,10 +401,10 @@ function ringSvg(min, got) {
 }
 function viewToday() {
   const t = today(), min = RQ.minutesOn(S, t), wk = RQ.week(S, t), streak = RQ.streakWeeks(S, t), plan = RQ.todayPlan(S, t);
-  const names = ["월", "화", "수", "목", "금", "토", "일"], mode = S.mode === "strength" ? "strength" : "cardio";
+  const names = ["월", "화", "수", "목", "금", "토", "일"], mode = ["cardio", "strength", "stretch"].includes(S.mode) ? S.mode : "cardio";
   let h = '<div class="modes" role="group" aria-label="운동 종류">' +
-    '<button class="mode" data-mode="cardio" aria-pressed="' + (mode === "cardio") + '"><span class="mi">' + RQART.svg("run") + '</span><span><b>유산소</b><small>걷기 · 달리기</small></span></button>' +
-    '<button class="mode" data-mode="strength" aria-pressed="' + (mode === "strength") + '"><span class="mi">' + RQART.ex("squat", 1) + '</span><span><b>근력</b><small>스쿼트 · 플랭크</small></span></button></div>';
+    [["cardio", "유산소", RQART.svg("run")], ["strength", "근력", RQART.ex("squat", 1)], ["stretch", "스트레칭", RQART.st("chest", 0)]].map((m) =>
+      '<button class="mode" data-mode="' + m[0] + '" aria-pressed="' + (mode === m[0]) + '"><span class="mi">' + m[2] + "</span><b>" + m[1] + "</b></button>").join("") + "</div>";
   const got = RQ.strengthQuest(S, t).filter((it) => it.done).length, both = min >= RQ.GOAL_MIN && got >= 3;
   h += '<div class="card"><div class="ringrow"><div class="ring">' + ringSvg(min, got) + '<div class="num"><b>' + min + '</b><span>분</span></div></div><div>' +
     '<div class="eyebrow">TODAY</div>' + (both ? '<div style="font-size:19px;margin-top:2px">오늘 목표 모두 달성! 🎉</div>' :
@@ -392,6 +414,7 @@ function viewToday() {
     '<div class="streak">이번 주 <b>' + wk.active + "</b>/3일" + (streak ? " · 🔥 <b>" + streak + "주</b> 연속" : "") + "</div></div></div></div>";
 
   if (mode === "strength") return h + viewSnack();
+  if (mode === "stretch") return h + viewStretch();
   const st = plan.stage;
   if (plan.kind === "rest") {
     h += '<div class="card quest rest"><div class="scene night wide">' + RQART.svg("rest") + '</div><div class="eyebrow">QUEST CLEAR</div><h2>오늘 퀘스트 클리어!</h2>' +
@@ -482,6 +505,7 @@ function viewLog() {
   }).join("") + "</div>";
   h += '<div class="card"><div class="eyebrow">RECORDS</div>' + (recent.length ? recent.map((e) => {
     const [, m, d] = e.day.split("-");
+    if (e.kind === "stretch") return '<div class="rec"><span class="when">' + +e.day.split("-")[1] + "/" + +e.day.split("-")[2] + '</span><span class="what">' + (e.done ? "◆ " : "◇ ") + "스트레칭 · " + esc((RQ.ROUTINE[e.routine] || {}).name || "") + '</span><span class="t">' + (e.sec < 60 ? e.sec + "초" : Math.round(e.sec / 60) + "분") + "</span></div>";
     if (e.kind === "snack") return '<div class="rec"><span class="when">' + +e.day.split("-")[1] + "/" + +e.day.split("-")[2] + '</span><span class="what">' + (e.xp ? "◆ " : "◇ ") + "틈새 · " + esc(RQ.snackLabel(e.snack, e.n)) + '</span><span class="t">' + (e.sec < 60 ? e.sec + "초" : Math.round(e.sec / 60) + "분") + "</span></div>";
     const what = e.kind === "manual" ? "🚶 직접 기록" : (e.done ? "★ " : "⏸ ") + esc(e.stage) + (e.done ? " 클리어" : " 중간에 멈춤");
     return '<div class="rec"><span class="when">' + +m + "/" + +d + '</span><span class="what">' + what + " " + (rateIc[e.rating] || "") + '</span><span class="t">' + Math.round(e.sec / 60) + "분</span></div>";
@@ -515,14 +539,14 @@ function viewSnack() {
   h = questCard() + h;
   h += '<div class="snack-grid">' + RQ.SNACKS.map((x) => {
     const c = RQ.snacksOn(S, t, x.id);
-    return '<button class="sn" data-snack="' + x.id + '"><div class="pic">' + RQART.ex(x.id, 1) + "</div>" + (c ? '<span class="cnt">✓ ' + c + "</span>" : "") +
+    return '<button class="sn" data-snack="' + x.id + '"><div class="pic">' + RQART.ex(x.id, 1) + "</div>" + (c ? '<span class="cnt">✓ ' + c + "</span>" : "") + (x.level === "hard" ? '<span class="tag">도전</span>' : "") +
       "<b>" + esc(x.name) + "</b><small>" + (x.kind === "time" ? RQ.snackN(S, x.id) + "초" : RQ.snackN(S, x.id) + "개") + "</small></button>";
   }).join("") + "</div>";
   return h;
 }
 function openSnackSheet(id) {
   const x = RQ.SNACK[id], n = RQ.snackN(S, id), unit = x.kind === "time" ? "초" : "개";
-  $("sheetbox").innerHTML = '<div class="bigpic">' + RQART.ex(id, 1) + '</div><div class="eyebrow">SNACK WORKOUT</div><h2>' + esc(x.name) + '</h2><p class="desc" style="margin-top:6px">' + esc(x.tip) + "</p>" +
+  $("sheetbox").innerHTML = '<div class="bigpic">' + RQART.ex(id, 1) + '</div><div class="eyebrow">SNACK WORKOUT</div><h2>' + esc(x.name) + '</h2><p class="desc" style="margin-top:6px">' + esc(x.tip) + (x.level === "hard" ? " 익숙해진 뒤에 도전해요." : "") + ' <span style="color:var(--dim)">아프면 바로 멈추세요.</span></p>' +
     '<div class="stepper"><button data-stepn="-1" aria-label="줄이기">−</button><b>' + n + "<small>" + unit + '</small></b><button data-stepn="1" aria-label="늘리기">+</button></div>' +
     (x.kind === "reps" ? '<div class="speeds" role="group" aria-label="박자">' + Object.keys(RQ.SPEEDS).map((k) =>
       '<button data-speed="' + k + '" aria-pressed="' + (RQ.snackSpeed(S, id) === k) + '"><b>' + RQ.SPEEDS[k].label + "</b><small>하나에 " + RQ.tempoOf(S, id, k) + "초</small></button>").join("") + "</div>" : "") +
@@ -537,8 +561,9 @@ let SK = null, skTimer = null;
 const READY = 3;
 const skEl = () => ((SK.pausedAt || Date.now()) - SK.startAt - SK.pausedMs) / 1000 - READY;
 function startSnack(id) {
-  if (R) return;
+  if (R || STR) return;
   audioInit(); closeAll();
+  $("skbox").className = "sk";
   const x = RQ.SNACK[id];
   $("skbox").classList.remove("sk-done");
   SK = { id, n: RQ.snackN(S, id), tempo: RQ.tempoOf(S, id), startAt: Date.now(), pausedMs: 0, pausedAt: 0, said: {}, done: 0 };
@@ -619,6 +644,91 @@ function skFinish(complete) {
     (out.full ? '<div class="rate-q">이번 세트 어땠어요?</div><div class="rate">' +
       '<button data-srate="easy" data-sid="' + id + '"><span>😎</span>쉬웠다</button><button data-srate="ok" data-sid="' + id + '"><span>🙂</span>적당했다</button><button data-srate="hard" data-sid="' + id + '"><span>🥵</span>힘들었다</button></div><div class="hint" id="srhint"></div>' : "") +
     '<div class="sk-sp"></div><div class="sk-btns"><button class="btn ghost" id="sk-close">닫기</button><button class="btn" data-snackgo="' + id + '">한 세트 더</button></div>';
+}
+
+// ---------------- stretching: routine list ----------------
+function viewStretch() {
+  const t = today();
+  return '<div class="sub" style="margin:0 4px 12px">시작만 누르면 음성이 다음 동작을 알려줘요. 시원한 정도까지만 늘리고, 아프면 멈추세요.</div>' +
+    RQ.ROUTINES.map((r) => {
+      const steps = RQ.routineSteps(r.id), did = RQ.stretchesOn(S, t, r.id);
+      return '<div class="card">' + (did ? '<span class="rt-done">오늘 ✓</span>' : "") + '<div class="eyebrow">약 ' + Math.round(RQ.routineTotal(steps) / 60) + "분 · " + r.items.length + "동작</div>" +
+        '<h2 style="font-size:25px">' + esc(r.name) + '</h2><div class="sub">' + esc(r.desc) + '</div><div class="rt-pics">' +
+        r.items.map((id) => '<div><span class="mi">' + RQART.st(id, 0) + "</span>" + esc(RQ.STRETCH[id].name.replace(" 늘리기", "")) + "</div>").join("") +
+        '</div><button class="btn" data-stretchgo="' + r.id + '">▶ 시작하기</button></div>';
+    }).join("");
+}
+
+// ---------------- stretching: follow-along engine ----------------
+// STR = { rid, steps, total, startAt, pausedMs, pausedAt, said, shown, skip } — skip = seconds jumped over with "다음 동작".
+let STR = null, strTimer = null;
+const strEl = () => ((STR.pausedAt || Date.now()) - STR.startAt - STR.pausedMs) / 1000;
+function startStretch(rid) {
+  if (R || SK) return;
+  audioInit(); closeAll(); $("result").classList.remove("show"); R_res = null;
+  const steps = RQ.routineSteps(rid);
+  STR = { rid, steps, total: RQ.routineTotal(steps), startAt: Date.now(), pausedMs: 0, pausedAt: 0, said: {}, shown: "", skip: 0 };
+  $("skbox").className = "sk st";
+  $("skbox").innerHTML = '<div class="sk-top"><b style="font-weight:400">' + esc(RQ.ROUTINE[rid].name) + '</b><button id="st-stop">그만하기</button></div>' +
+    '<div class="sk-pic" id="st-pic"></div><div class="st-name" id="st-name"></div><div class="st-tip" id="st-tip"></div>' +
+    '<div class="sk-num" id="st-num"></div><div class="sk-cue" id="st-cue"></div><div class="st-dots" id="st-dots"></div><div class="st-next" id="st-next"></div><div class="sk-sp"></div>' +
+    '<div class="sk-btns"><button class="btn ghost" id="st-pause">일시정지</button><button class="btn" id="st-skip">다음 동작</button></div>';
+  $("snack").classList.add("show"); document.body.style.overflow = "hidden"; armBack();
+  wake(); clearInterval(strTimer); strTimer = setInterval(strTick, 200); strTick();
+}
+function strTick() {
+  if (!STR) return;
+  const el = strEl(), pos = RQ.routinePos(STR.steps, el), paused = !!STR.pausedAt;
+  if (pos.done) return strFinish(true);
+  const stp = STR.steps[pos.i], x = RQ.STRETCH[stp.id];
+  const frame = stp.id === "catcow" && pos.phase === "hold" ? Math.floor(pos.into / 3) % 2 : 0;
+  if (STR.shown !== pos.i + "-" + frame) {
+    STR.shown = pos.i + "-" + frame;
+    $("st-pic").innerHTML = RQART.st(stp.id, frame, { flip: stp.side === "오른쪽" });
+    $("st-name").textContent = x.name + (stp.side ? " · " + stp.side : "");
+    $("st-tip").textContent = x.tip;
+    $("st-dots").innerHTML = STR.steps.map((_, j) => '<i class="' + (j < pos.i ? "on" : j === pos.i ? "cur" : "") + '"></i>').join("");
+    const nx = STR.steps[pos.i + 1];
+    $("st-next").textContent = nx ? "다음: " + RQ.STRETCH[nx.id].name + (nx.side ? " · " + nx.side : "") : "마지막 동작이에요";
+  }
+  const once = (k, fn) => { if (!STR.said[k]) { STR.said[k] = 1; fn(); } };
+  const sec = Math.ceil(pos.left);
+  if (!paused) {
+    once("p" + pos.i, () => { say((pos.i ? "다음, " : "") + x.name + (stp.side ? ", " + stp.side : "") + ". 준비."); beep(520, .1); });
+    if (pos.phase === "hold") {
+      once("h" + pos.i, () => { say(stp.sec + "초, 시작.", true); beep(880, .15); buzz(60); });
+      if (sec <= 3) once("c" + pos.i + "-" + sec, () => beep(620, .08));
+    }
+  }
+  $("st-num").innerHTML = sec + "<small>초</small>";
+  $("st-cue").textContent = paused ? "잠깐 멈춤" : pos.phase === "prep" ? "자세 잡기" : stp.id === "catcow" ? (frame ? "내쉬며 등 둥글게" : "들이쉬며 등 내리기") : "그대로 유지";
+  $("st-pause").textContent = paused ? "▶ 계속" : "일시정지";
+}
+function strPause() {
+  if (!STR) return;
+  if (STR.pausedAt) { STR.pausedMs += Date.now() - STR.pausedAt; STR.pausedAt = 0; wake(); } else STR.pausedAt = Date.now();
+  strTick();
+}
+function strSkip() {
+  if (!STR) return;
+  const el = strEl(), pos = RQ.routinePos(STR.steps, el), nextAt = pos.i + 1 < STR.steps.length ? STR.steps[pos.i + 1].at : STR.total;
+  STR.skip += nextAt - el; STR.startAt -= (nextAt - el) * 1000;
+  strTick();
+}
+function strFinish(complete) {
+  if (!STR) return;
+  clearInterval(strTimer); strTimer = null; unwake();
+  const rid = STR.rid, r = RQ.ROUTINE[rid], real = Math.max(0, Math.min(strEl(), STR.total) - STR.skip), full = complete && real >= STR.total / 2;
+  STR = null;
+  if (real < 10) return closeSnack();
+  const out = RQ.addStretch(S, rid, real, full, today()); persist();
+  if (complete) { say("끝! 몸이 한결 가벼워졌죠?", true); buzz(BUZZ.done); beep(784, .15); setTimeout(() => beep(1047, .3), 170); }
+  $("skbox").className = "sk sk-done";
+  $("skbox").innerHTML = '<div class="sk-sp"></div><div class="burst">' + RQART.svg(full ? "cheer" : "walk") + "</div>" +
+    '<div class="clear-title" style="font-size:30px">' + (full ? esc(r.name) + " 완료!" : "여기까지 OK!") + "</div>" +
+    '<div class="gain">' + (out.xp ? "+" + out.xp + " XP" : "") + "<small>" + (real >= 60 ? Math.round(real / 60) + "분" : Math.round(real) + "초") + " 스트레칭이 오늘 움직임에 들어갔어요" +
+    (full ? "" : complete ? " · 절반 넘게 따라 하면 XP를 받아요" : "") + "</small></div>" +
+    '<div class="sk-sp"></div><div class="sk-btns"><button class="btn ghost" id="sk-close">닫기</button><button class="btn" data-stretchgo="' + rid + '">한 번 더</button></div>';
 }
 
 // ---------------- render ----------------
@@ -760,7 +870,7 @@ function showResult(st, out, done, sec) {
       (out.newClear && next ? "<small>내일 " + esc(next.id) + " 판이 열려요</small>" : "") + (out.newClear && !next ? "<small>모든 판을 깼어요! 30분 달리기 성공!</small>" : "") + "</div>" +
       '<div class="rate-q">오늘 판은 어땠어요?</div><div class="rate">' +
       '<button data-rate="easy"><span>😎</span>쉬웠다</button><button data-rate="ok"><span>🙂</span>적당했다</button><button data-rate="hard"><span>🥵</span>힘들었다</button></div>' +
-      '<div class="hint" id="ratehint"></div><button class="btn green" id="resDone">확인</button>';
+      '<div class="hint" id="ratehint"></div><button class="btn" data-stretchgo="afterrun">달리기 후 스트레칭 3분</button><div style="height:14px"></div><button class="btn green" id="resDone">확인</button>';
   } else {
     h = '<div class="burst">' + RQART.svg("tired") + '</div><div class="clear-title" style="color:var(--ink)">여기까지 OK!</div>' +
       '<div class="sub" style="text-align:center">' + mins(sec) + " 움직인 건 오늘 운동량에 들어갔어요.<br>판은 마무리 걷기 전까지 해야 깨져요. 다음에 다시 도전!</div>" +
@@ -777,6 +887,8 @@ document.addEventListener("click", (e) => {
   const nb = t.closest("nav button"); if (nb) return go(nb.dataset.tab);
   const t2 = t.closest("[data-tab2]"); if (t2) return go(t2.dataset.tab2);
   const md = t.closest("[data-mode]"); if (md) { S.mode = md.dataset.mode; persist(); return render(); }
+  const sgo = t.closest("[data-stretchgo]");
+  if (sgo) { if (tab !== "today" || isOpen("result")) { $("result").classList.remove("show"); R_res = null; tab = "today"; render(); } return startStretch(sgo.dataset.stretchgo); }
   const sg = t.closest("[data-snackgo]"); if (sg) return startSnack(sg.dataset.snackgo);
   const sn = t.closest("[data-snack]"); if (sn) return openSnackSheet(sn.dataset.snack);
   const sr = t.closest("[data-srate]");
@@ -821,6 +933,9 @@ document.addEventListener("click", (e) => {
     case "resetAll":
       return dialog('<h2>처음부터 다시 할까요?</h2><p>깬 판, XP, 기록이 모두 지워지고 되돌릴 수 없어요.</p><button class="btn" id="resetYes">모두 지우고 다시 시작</button><button class="btn ghost" data-close>취소</button>');
     case "resetYes": S = RQ.fresh(); persist(); closeAll(); render(); return intro();
+    case "st-pause": return strPause();
+    case "st-skip": return strSkip();
+    case "st-stop": return strFinish(false);
     case "sk-pause": return skPause();
     case "sk-stop": case "sk-stop2": return skFinish(false);
     case "sk-close": return closeSnack();
@@ -834,7 +949,7 @@ document.addEventListener("click", (e) => {
   }
   if (t.closest("#dimmer")) $("dimmer").classList.remove("show");
 });
-document.addEventListener("visibilitychange", () => { if (!document.hidden && R) { wake(); tick(); } if (!document.hidden && SK) { wake(); skTick(); } });
+document.addEventListener("visibilitychange", () => { if (!document.hidden && R) { wake(); tick(); } if (!document.hidden && SK) { wake(); skTick(); } if (!document.hidden && STR) { wake(); strTick(); } });
 // a running stage cannot be closed by the Android back button by accident
 addEventListener("beforeunload", (e) => { if (R) { e.preventDefault(); e.returnValue = ""; } });
 
@@ -872,6 +987,7 @@ addEventListener("popstate", () => {
   backArmed = false;
   if (isOpen("dialog")) { closeAll(); if (R || SK) armBack(); return; }
   if (R) { if (isOpen("dimmer")) { $("dimmer").classList.remove("show"); return armBack(); } return askStop(); }
+  if (STR) { strFinish(false); if (isOpen("snack")) armBack(); return; }
   if (SK) { skFinish(false); if (isOpen("snack")) armBack(); return; }
   if (isOpen("snack")) return closeSnack();
   if (isOpen("result")) { $("result").classList.remove("show"); R_res = null; return go("today"); }

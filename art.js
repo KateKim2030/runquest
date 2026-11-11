@@ -19,8 +19,8 @@
       '<ellipse cx="' + shoeX + '" cy="' + (foot[1] + 2) + '" rx="10" ry="6" fill="' + (back ? "#e4ddd0" : K.shoe) + '" stroke="' + K.ink + '" stroke-width="3"/>';
   }
   const arm = (sh, el, ha, back) => tube([sh, el, ha], back ? K.skinD : K.skin, 9);
-  function torso(neck, hip) {
-    return tube([neck, hip], K.shirt, 26) + tube([lerp(hip, neck, 0.02), hip], K.shorts, 26);
+  function torso(neck, hip, mid) {
+    return tube(mid ? [neck, mid, hip] : [neck, hip], K.shirt, 26) + tube([lerp(hip, mid || neck, 0.02), hip], K.shorts, 26);
   }
   function head(h, mood, dir) {
     dir = dir || 1;
@@ -43,7 +43,7 @@
   }
   // P: head, neck, hip, arms [shoulder, elbow, hand] x2 (back, front), legs [knee, foot] x2 (back, front)
   function figure(P, mood, dir) {
-    return leg(P.hip, P.bl[0], P.bl[1], true) + arm(P.neck, P.ba[0], P.ba[1], true) + torso(P.neck, P.hip) +
+    return leg(P.hip, P.bl[0], P.bl[1], true) + arm(P.neck, P.ba[0], P.ba[1], true) + torso(P.neck, P.hip, P.mid) +
       leg(P.hip, P.fl[0], P.fl[1], false) + arm(P.neck, P.fa[0], P.fa[1], false) + head(P.head, mood, dir);
   }
   const shadow = (x, w) => '<ellipse cx="' + x + '" cy="184" rx="' + w + '" ry="6" fill="' + K.ink + '" opacity=".12"/>';
@@ -95,6 +95,10 @@
   const wallR = '<rect x="164" y="10" width="30" height="176" fill="#e8dac4" stroke="' + K.ink + '" stroke-width="3"/><path d="M164 50h30M164 92h30M164 134h30M179 10v40M179 92v42" stroke="' + K.ink + '" stroke-width="2" opacity=".35"/>';
   const wallL = '<rect x="6" y="10" width="30" height="176" fill="#e8dac4" stroke="' + K.ink + '" stroke-width="3"/><path d="M6 50h30M6 92h30M6 134h30M21 10v40M21 92v42" stroke="' + K.ink + '" stroke-width="2" opacity=".35"/>';
   const mat = '<rect x="14" y="180" width="172" height="8" rx="4" fill="' + K.sky + '" stroke="' + K.ink + '" stroke-width="2.5"/>';
+  const chairSvg = (seatX, backX) => '<path d="M' + backX + ' 88 V184 M' + (seatX + 4) + ' 134 V184 M' + (seatX + 40) + ' 134 V184" stroke="' + K.ink + '" stroke-width="5" stroke-linecap="round"/>' +
+    '<rect x="' + seatX + '" y="128" width="44" height="9" rx="4" fill="#e8dac4" stroke="' + K.ink + '" stroke-width="3"/>';
+  const chairL = chairSvg(62, 62);    // seat to the right of its back: sit facing right
+  const chairR = chairSvg(146, 146);  // stands on the right as a support
   const STAND = { head: [100, 36], neck: [100, 60], hip: [100, 110], ba: [[96, 84], [94, 108]], fa: [[104, 84], [106, 108]], bl: [[98, 146], [94, 178]], fl: [[102, 146], [106, 178]] };
   const EX = {
     squat: [
@@ -119,10 +123,53 @@
     plank: [
       { p: { head: [166, 128], neck: [146, 140], hip: [98, 150], ba: [[144, 176], [166, 176]], fa: [[148, 176], [170, 176]], bl: [[68, 162], [36, 172]], fl: [[70, 164], [40, 174]] }, m: "grit", bg: mat },
       { p: { head: [166, 126], neck: [146, 138], hip: [98, 147], ba: [[144, 176], [166, 176]], fa: [[148, 176], [170, 176]], bl: [[68, 161], [36, 172]], fl: [[70, 163], [40, 174]] }, m: "grit", bg: mat }],
+    chair: [
+      { p: { head: [88, 50], neck: [86, 74], hip: [84, 122], ba: [[100, 94], [114, 102]], fa: [[102, 92], [118, 98]], bl: [[118, 124], [116, 176]], fl: [[122, 122], [122, 176]] }, m: "smile", bg: chairL },
+      { p: { head: [114, 38], neck: [112, 62], hip: [112, 112], ba: [[130, 70], [146, 74]], fa: [[132, 68], [148, 70]], bl: [[112, 146], [110, 178]], fl: [[116, 146], [120, 178]] }, m: "grit", bg: chairL }],
+    row: [
+      { p: { head: [100, 36], neck: [100, 60], hip: [100, 110], ba: [[120, 68], [140, 70]], fa: [[122, 66], [142, 66]], bl: [[98, 146], [94, 178]], fl: [[102, 146], [106, 178]] }, m: "smile" },
+      { p: { head: [103, 35], neck: [101, 60], hip: [100, 110], ba: [[82, 78], [98, 90]], fa: [[80, 74], [100, 86]], bl: [[98, 146], [94, 178]], fl: [[102, 146], [106, 178]] }, m: "grit" }],
+    kickback: [
+      { p: { head: [104, 36], neck: [104, 60], hip: [100, 110], ba: [[120, 82], [142, 96]], fa: [[122, 80], [144, 94]], bl: [[98, 146], [96, 178]], fl: [[102, 146], [106, 178]] }, m: "smile", bg: chairR },
+      { p: { head: [112, 38], neck: [108, 62], hip: [100, 110], ba: [[122, 84], [142, 96]], fa: [[124, 82], [144, 94]], bl: [[80, 138], [56, 156]], fl: [[102, 146], [106, 178]] }, m: "grit", bg: chairR }],
+    deadbug: [
+      { p: { head: [38, 162], neck: [60, 166], hip: [108, 168], ba: [[62, 140], [60, 114]], fa: [[68, 138], [68, 112]], bl: [[110, 134], [140, 134]], fl: [[114, 132], [144, 132]] }, m: "smile", bg: mat },
+      { p: { head: [38, 162], neck: [60, 166], hip: [108, 168], ba: [[62, 140], [60, 114]], fa: [[42, 146], [18, 138]], bl: [[140, 160], [172, 156]], fl: [[114, 132], [144, 132]] }, m: "grit", bg: mat }],
+    kneeplank: [
+      { p: { head: [166, 128], neck: [146, 140], hip: [98, 154], ba: [[144, 176], [166, 176]], fa: [[148, 176], [170, 176]], bl: [[66, 172], [38, 150]], fl: [[70, 174], [42, 152]] }, m: "grit", bg: mat },
+      { p: { head: [166, 126], neck: [146, 138], hip: [98, 151], ba: [[144, 176], [166, 176]], fa: [[148, 176], [170, 176]], bl: [[66, 172], [38, 148]], fl: [[70, 174], [42, 150]] }, m: "grit", bg: mat }],
     wallsit: [
       { p: { head: [56, 56], neck: [52, 80], hip: [56, 130], ba: [[70, 104], [90, 112]], fa: [[74, 102], [94, 108]], bl: [[100, 130], [100, 178]], fl: [[104, 128], [106, 178]] }, m: "grit", bg: wallL },
       { p: { head: [56, 56], neck: [52, 80], hip: [56, 130], ba: [[70, 104], [90, 112]], fa: [[74, 102], [94, 108]], bl: [[100, 130], [100, 178]], fl: [[104, 128], [106, 178]] }, m: "open", bg: wallL }],
   };
+  // ---------- 스트레칭 poses (catcow has two frames, the rest hold still) ----------
+  const ST = {
+    calf: [{ p: { head: [130, 48], neck: [120, 70], hip: [98, 118], ba: [[140, 76], [160, 78]], fa: [[142, 72], [160, 72]], bl: [[76, 150], [52, 178]], fl: [[124, 146], [130, 178]] }, m: "smile", bg: wallR }],
+    hamstring: [{ p: { head: [114, 96], neck: [98, 114], hip: [70, 160], mid: [80, 132], ba: [[122, 140], [148, 162]], fa: [[124, 136], [150, 158]], bl: [[98, 148], [106, 172]], fl: [[112, 166], [156, 170]] }, m: "smile", bg: mat }],
+    quad: [{ p: { head: [102, 36], neck: [102, 60], hip: [100, 110], ba: [[88, 92], [74, 124]], fa: [[118, 82], [132, 96]], bl: [[96, 146], [70, 128]], fl: [[102, 146], [104, 178]] }, m: "smile" }],
+    glute: [{ p: { head: [108, 58], neck: [96, 80], hip: [84, 122], ba: [[110, 100], [118, 116]], fa: [[112, 98], [124, 112]], bl: [[118, 126], [116, 176]], fl: [[114, 108], [132, 122]] }, m: "smile", bg: chairL }],
+    neck: [{ p: { head: [108, 42], neck: [100, 62], hip: [100, 112], ba: [[94, 86], [92, 110]], fa: [[120, 56], [114, 32]], bl: [[98, 146], [94, 178]], fl: [[102, 146], [106, 178]] }, m: "sleep" }],
+    chest: [{ p: { head: [106, 34], neck: [103, 60], hip: [100, 112], ba: [[84, 82], [76, 108]], fa: [[86, 80], [80, 106]], bl: [[98, 146], [94, 178]], fl: [[102, 146], [106, 178]] }, m: "smile" }],
+    hipflexor: [{ p: { head: [102, 56], neck: [102, 80], hip: [100, 132], ba: [[88, 104], [96, 126]], fa: [[116, 104], [106, 126]], bl: [[84, 172], [50, 176]], fl: [[130, 138], [130, 176]] }, m: "smile", bg: mat }],
+    catcow: [
+      { p: { head: [158, 100], neck: [138, 116], hip: [80, 118], mid: [108, 130], ba: [[136, 146], [136, 176]], fa: [[140, 146], [140, 176]], bl: [[78, 170], [48, 176]], fl: [[82, 170], [52, 176]] }, m: "smile", bg: mat },
+      { p: { head: [152, 140], neck: [136, 122], hip: [80, 124], mid: [108, 100], ba: [[136, 148], [136, 176]], fa: [[140, 148], [140, 176]], bl: [[78, 170], [48, 176]], fl: [[82, 170], [52, 176]] }, m: "sleep", bg: mat }],
+    child: [{ p: { head: [136, 162], neck: [118, 158], hip: [70, 152], mid: [96, 142], ba: [[146, 172], [174, 174]], fa: [[148, 170], [176, 172]], bl: [[98, 172], [62, 174]], fl: [[100, 174], [64, 176]] }, m: "sleep", bg: mat }],
+    kneehug: [{ p: { head: [38, 162], neck: [60, 166], hip: [108, 168], ba: [[76, 150], [94, 138]], fa: [[78, 146], [96, 134]], bl: [[140, 170], [172, 172]], fl: [[90, 138], [114, 128]] }, m: "sleep", bg: mat }],
+    twist: [{ p: { head: [38, 162], neck: [60, 166], hip: [108, 168], ba: [[82, 175], [104, 177]], fa: [[70, 142], [78, 118]], bl: [[134, 148], [150, 174]], fl: [[130, 152], [146, 176]] }, m: "sleep", bg: mat }],
+  };
+  function poseSvg(f, opts, extra) {
+    const fig = figure(f.p, f.m);
+    const body = (f.bg || "") + (f.bg === mat ? "" : shadow(f.p.hip[0], 34)) +
+      (f.up ? '<g transform="translate(0 -' + f.up + ')">' + fig + "</g>" : fig) + (extra || "");
+    const disc = opts.disc ? '<circle cx="100" cy="100" r="96" fill="' + opts.disc + '"/>' : "";
+    return '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' + disc +
+      (opts.flip ? '<g transform="translate(200 0) scale(-1 1)">' + body + "</g>" : body) + "</svg>";
+  }
+  function st(id, frame, opts) {
+    const fr = ST[id] || ST.calf;
+    return poseSvg(fr[frame && fr.length > 1 ? 1 : 0], opts || {});
+  }
   function ex(id, frame, opts) {
     opts = opts || {};
     const f = (EX[id] || EX.squat)[frame ? 1 : 0];
@@ -141,6 +188,6 @@
     const g = opts.flip ? '<g transform="translate(200 0) scale(-1 1)">' + body + "</g>" : body;
     return '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' + disc + g + "</svg>";
   }
-  const API = { svg, ex, SCENES: Object.keys(SCENES), EXERCISES: Object.keys(EX) };
+  const API = { svg, ex, st, SCENES: Object.keys(SCENES), EXERCISES: Object.keys(EX), STRETCHES: Object.keys(ST) };
   if (typeof module !== "undefined" && module.exports) module.exports = API; else root.RQART = API;
 })(this);

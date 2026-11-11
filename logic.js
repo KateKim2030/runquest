@@ -132,15 +132,20 @@
   // kind "reps": the app counts one rep every `tempo` seconds; "time": a countdown.
   // say: [first half of a rep, second half] — the first half shows art frame B, the second frame A.
   const SNACKS = [
+    { id: "chair", name: "의자에서 일어나기", short: "의자 일어나기", kind: "reps", n: 10, step: 5, tempo: 3, say: ["일어나요", "앉아요"], tip: "의자 끝에 앉아 손을 쓰지 않고 일어났다가 천천히 앉아요. 스쿼트가 어려울 때 좋아요." },
     { id: "squat", name: "스쿼트", kind: "reps", n: 10, step: 5, tempo: 2, say: ["앉아요", "일어나요"], tip: "엉덩이를 뒤로 빼며 의자에 앉듯이. 무릎은 발끝 방향으로." },
     { id: "wallpush", name: "벽 푸시업", kind: "reps", n: 10, step: 5, tempo: 2, say: ["가까이", "밀어요"], tip: "벽에서 한 걸음 반 떨어져 손을 어깨 높이에. 몸은 일자로." },
+    { id: "row", name: "등 조이기", kind: "reps", n: 12, step: 2, tempo: 2.5, say: ["당겨요", "뻗어요"], tip: "팔을 앞으로 뻗었다가 팔꿈치를 뒤로 당겨 날개뼈를 모아요. 어깨는 내리고 가슴을 펴요." },
     { id: "calf", name: "까치발 들기", short: "까치발", kind: "reps", n: 20, step: 5, tempo: 1.5, say: ["올려요", "내려요"], tip: "발뒤꿈치를 천천히 올렸다 내려요. 벽을 살짝 짚어도 좋아요." },
-    { id: "lunge", name: "번갈아 런지", kind: "reps", n: 12, step: 2, tempo: 2.5, say: ["내딛어요", "돌아와요"], tip: "한 발 앞으로 내딛고 뒷무릎을 바닥 가까이. 다리를 바꿔 가며." },
+    { id: "kickback", name: "뒤로 다리 들기", kind: "reps", n: 12, step: 2, tempo: 2.5, say: ["들어요", "내려요"], tip: "의자를 잡고 서서 한 다리를 뒤로 들어요. 허리는 꺾지 않고, 좌우를 번갈아." },
     { id: "bridge", name: "글루트 브릿지", kind: "reps", n: 15, step: 5, tempo: 2.5, say: ["들어요", "내려요"], tip: "누워서 무릎을 세우고, 엉덩이를 들어 어깨부터 무릎까지 일자로." },
     { id: "birddog", name: "버드독", kind: "reps", n: 10, step: 2, tempo: 3, say: ["뻗어요", "돌아와요"], tip: "네발 자세에서 반대쪽 팔과 다리를 뻗고 잠깐 멈춰요. 좌우 번갈아." },
+    { id: "deadbug", name: "데드버그", kind: "reps", n: 10, step: 2, tempo: 3.5, say: ["뻗어요", "돌아와요"], tip: "누워서 팔과 무릎을 들고, 반대쪽 팔과 다리를 천천히 뻗어요. 허리는 바닥에 붙여요." },
     { id: "knee", name: "제자리 무릎 들기", kind: "time", n: 30, step: 10, tempo: 1.2, tip: "조용히 걷듯 무릎을 번갈아 높이 들어요. 뛰지 않아요." },
-    { id: "plank", name: "플랭크", kind: "time", n: 30, step: 10, tempo: 0, tip: "팔꿈치는 어깨 아래, 머리부터 발끝까지 일자로. 숨은 참지 않아요." },
+    { id: "kneeplank", name: "무릎 플랭크", kind: "time", n: 20, step: 10, tempo: 0, tip: "무릎을 바닥에 대고 팔꿈치로 버텨요. 머리부터 무릎까지 일자로, 숨은 참지 않아요." },
     { id: "wallsit", name: "벽에 기대 앉기", kind: "time", n: 30, step: 10, tempo: 0, tip: "등을 벽에 붙이고 무릎이 90도가 되게 앉아요." },
+    { id: "lunge", level: "hard", name: "번갈아 런지", kind: "reps", n: 12, step: 2, tempo: 2.5, say: ["내딛어요", "돌아와요"], tip: "한 발 앞으로 내딛고 뒷무릎을 바닥 가까이. 다리를 바꿔 가며." },
+    { id: "plank", level: "hard", name: "플랭크", kind: "time", n: 30, step: 10, tempo: 0, tip: "팔꿈치는 어깨 아래, 머리부터 발끝까지 일자로. 숨은 참지 않아요." },
   ];
   const SNACK = Object.fromEntries(SNACKS.map((x) => [x.id, x]));
   const SNACK_XP = 10;
@@ -159,12 +164,15 @@
   // done = how many reps (or seconds) were actually finished; a set counts once it is at least half done
   // ---------- 오늘의 근력 퀘스트: one leg move + one upper/back move + one core move, rotating by date ----------
   const QUEST_XP = 50, BADGE_XP = 30;
-  const Q_LEGS = ["squat", "lunge", "calf", "wallsit"], Q_UPPER = ["wallpush", "birddog"], Q_CORE = ["plank", "bridge", "knee"];
+  const Q_LEGS = ["chair", "squat", "calf", "kickback", "wallsit"], Q_UPPER = ["wallpush", "row", "birddog"], Q_CORE = ["kneeplank", "bridge", "knee", "deadbug"];
+  const HARD_AFTER = 3; // badges needed before 런지 / 플랭크 show up in the daily quest
+  const hardUnlocked = (state) => allBadges(state) >= HARD_AFTER;
   const dayNum = (k) => Math.round(parseDay(k).getTime() / 864e5);
   const fullSetOn = (state, day, id) => state.log.some((e) => e.day === day && e.kind === "snack" && e.snack === id && e.full);
   function strengthQuest(state, day) {
     const d = dayNum(day);
-    return [Q_LEGS[d % 4], Q_UPPER[d % 2], Q_CORE[d % 3]].map((id) => ({ id, n: snackN(state, id), done: fullSetOn(state, day, id) }));
+    const hard = hardUnlocked(state), legs = hard ? [...Q_LEGS, "lunge"] : Q_LEGS, core = hard ? [...Q_CORE, "plank"] : Q_CORE;
+    return [legs[d % legs.length], Q_UPPER[d % Q_UPPER.length], core[d % core.length]].map((id) => ({ id, n: snackN(state, id), done: fullSetOn(state, day, id) }));
   }
   const questCleared = (state, day) => !!(state.qClears && state.qClears[day]);
 
@@ -215,6 +223,53 @@
     if (n <= 0 || n >= 40) return String(n);
     return t[Math.floor(n / 10)] + u[n % 10];
   }
+
+  // ---------- 스트레칭: follow-along routines; each move is a 5-second "get ready" plus a hold ----------
+  const STRETCH = {
+    calf: { name: "종아리 늘리기", sec: 20, sides: true, tip: "벽을 짚고 한 발을 뒤로. 뒤꿈치를 바닥에 붙여요." },
+    hamstring: { name: "허벅지 뒤 늘리기", sec: 20, sides: true, tip: "앉아서 한 다리를 펴고 발끝 쪽으로 천천히 숙여요. 등은 길게." },
+    quad: { name: "허벅지 앞 늘리기", sec: 20, sides: true, tip: "서서 한 발을 뒤로 잡아 엉덩이 쪽으로. 벽을 짚어도 좋아요." },
+    glute: { name: "엉덩이 늘리기", sec: 20, sides: true, tip: "의자에 앉아 한 발목을 반대쪽 무릎에 올리고 살짝 숙여요." },
+    neck: { name: "목 옆 늘리기", sec: 20, sides: true, tip: "한 손으로 머리를 옆으로 살며시 당겨요. 어깨는 내리고." },
+    chest: { name: "가슴 펴기", sec: 30, sides: false, tip: "등 뒤로 깍지를 끼고 가슴을 활짝. 어깨를 뒤로 모아요." },
+    hipflexor: { name: "골반 앞쪽 늘리기", sec: 20, sides: true, tip: "한 무릎을 꿇고 골반을 앞으로 밀어요. 허리는 꺾지 않아요." },
+    catcow: { name: "고양이-소 자세", sec: 30, sides: false, tip: "네발 자세에서 숨에 맞춰 등을 둥글게 말았다가 내려요." },
+    child: { name: "아기 자세", sec: 40, sides: false, tip: "무릎 꿇고 엉덩이를 뒤꿈치 쪽으로, 팔은 앞으로 길게. 숨을 편하게." },
+    kneehug: { name: "무릎 당기기", sec: 20, sides: true, tip: "누워서 한 무릎을 가슴으로 끌어안아요." },
+    twist: { name: "누워서 허리 비틀기", sec: 25, sides: true, tip: "누워서 두 무릎을 한쪽으로 넘기고 시선은 반대로." },
+  };
+  const ROUTINES = [
+    { id: "afterrun", name: "달리기 후 스트레칭", desc: "뛴 다리를 풀어 줘요", items: ["calf", "hamstring", "quad", "glute"] },
+    { id: "desk", name: "오래 앉은 뒤 스트레칭", desc: "굳은 목 · 어깨 · 골반 펴기", items: ["neck", "chest", "hipflexor", "catcow"] },
+    { id: "bed", name: "자기 전 스트레칭", desc: "바닥에서 편하게 마무리", items: ["catcow", "child", "kneehug", "twist"] },
+  ];
+  const ROUTINE = Object.fromEntries(ROUTINES.map((x) => [x.id, x]));
+  const PREP = 5, STRETCH_XP = 20;
+  // One step per side: { id, side: "" | "왼쪽" | "오른쪽", sec, at } where `at` is when its get-ready count starts.
+  function routineSteps(rid) {
+    const out = []; let t = 0;
+    ROUTINE[rid].items.forEach((id) => (STRETCH[id].sides ? ["왼쪽", "오른쪽"] : [""]).forEach((side) => {
+      out.push({ id, side, sec: STRETCH[id].sec, at: t }); t += PREP + STRETCH[id].sec;
+    }));
+    return out;
+  }
+  const routineTotal = (steps) => { const l = steps[steps.length - 1]; return l.at + PREP + l.sec; };
+  function routinePos(steps, el) {
+    for (let i = 0; i < steps.length; i++) {
+      const st = steps[i], hold = st.at + PREP, end = hold + st.sec;
+      if (el < hold) return { i, phase: "prep", left: hold - el, done: false };
+      if (el < end) return { i, phase: "hold", left: end - el, into: el - hold, done: false };
+    }
+    return { i: steps.length, done: true, left: 0 };
+  }
+  // A finished routine earns XP; a stopped one still adds its time to today's movement.
+  function addStretch(state, rid, sec, complete, today) {
+    const xp = complete ? STRETCH_XP : 0;
+    state.xp += xp;
+    state.log.push({ day: today, kind: "stretch", routine: rid, sec: Math.round(sec), done: !!complete, xp });
+    return { xp };
+  }
+  const stretchesOn = (state, day, rid) => state.log.filter((e) => e.day === day && e.kind === "stretch" && e.done && (!rid || e.routine === rid)).length;
 
   function undoManual(state, today) {
     for (let i = state.log.length - 1; i >= 0; i--) {
@@ -314,6 +369,7 @@
   function save(storage, state) { try { storage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 
   const API = { KEY, GOAL_MIN, WORLDS, STAGES, NAMES, totalSec, runSec, runCount, xpFor, dayKey, addDays, mondayOf,
+    STRETCH, ROUTINES, ROUTINE, PREP, STRETCH_XP, routineSteps, routineTotal, routinePos, addStretch, stretchesOn, hardUnlocked, HARD_AFTER,
     SNACKS, SNACK, SNACK_XP, QUEST_XP, BADGE_XP, BADGE_STEPS, strengthQuest, questCleared, snackTotal, badgeLabel, badgesFor, allBadges, rateSnack, SPEEDS, snackSpeed, setSnackSpeed, tempoOf, snackN, setSnackN, snackLabel, addSnack, snacksOn, koNum, activeDays,
     reachedCooldown, exportData, importData,
     fresh, start, nodeState, todayPlan, canPlay, finish, rate, addManual, undoManual, minutesOn, level, week,

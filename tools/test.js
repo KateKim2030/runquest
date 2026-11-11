@@ -72,7 +72,7 @@ ok(A.cleared === 24 && RQ.todayPlan(A, day).kind === "allclear", "all 24 cleared
 
 // snack workouts
 const N = RQ.start(RQ.fresh(), 2);
-ok(RQ.SNACKS.length === 9 && RQ.snackN(N, "squat") === 10, "9 snacks, squat 10");
+ok(RQ.SNACKS.length === 14 && RQ.snackN(N, "squat") === 10, "14 snacks, squat 10");
 ok(RQ.setSnackN(N, "squat", 15) === 15 && RQ.snackN(N, "squat") === 15 && RQ.setSnackN(N, "squat", 99) === 30, "squat count adjustable, max 30");
 RQ.setSnackN(N, "squat", 10);
 let sr = RQ.addSnack(N, "squat", 10, 31, "2026-11-11");
@@ -122,6 +122,32 @@ const back = RQ.importData(RQ.exportData(EX, "2026-11-12T00:00:00Z"));
 ok(back.cleared === 4 && back.log.length === 1 && back.mode === "strength" && back.xp === EX.xp, "backup round trip");
 let threw = 0; ["nope", "{}", '{"v":1}', '{"app":"runquest","state":{"v":2,"log":[],"cleared":0,"xp":0}}'].forEach((x) => { try { RQ.importData(x); } catch (e) { threw++; } });
 ok(threw === 4, "bad backup files are rejected");
+
+// beginner-first exercise list and quest
+ok(RQ.SNACKS[0].id === "chair" && RQ.SNACKS.slice(-2).every((x) => x.level === "hard"), "easy moves first, 도전 moves last");
+const HQ = RQ.fresh();
+const seen = new Set();
+for (let i = 0; i < 60; i++) RQ.strengthQuest(HQ, RQ.addDays("2026-11-12", i)).forEach((q) => seen.add(q.id));
+ok(!seen.has("lunge") && !seen.has("plank") && seen.has("chair") && seen.has("kneeplank") && seen.has("row"), "beginner quest never asks for lunge or plank");
+for (let i = 0; i < 30; i++) RQ.addSnack(HQ, "squat", 10, 20, "2026-11-01"); // 300 squats = 3 badges
+const seen2 = new Set();
+for (let i = 0; i < 60; i++) RQ.strengthQuest(HQ, RQ.addDays("2026-11-12", i)).forEach((q) => seen2.add(q.id));
+ok(RQ.hardUnlocked(HQ) && seen2.has("lunge") && seen2.has("plank"), "after 3 badges the 도전 moves join the quest");
+for (let i = 0; i < 60; i++) { const q = RQ.strengthQuest(HQ, RQ.addDays("2026-11-12", i)); if (new Set(q.map((x) => x.id)).size !== 3) fail++; }
+
+// stretching routines
+ok(RQ.ROUTINES.length === 3 && RQ.ROUTINES.every((r) => r.items.every((id) => RQ.STRETCH[id])), "3 routines, all moves defined");
+const rs = RQ.routineSteps("afterrun");
+ok(rs.length === 8 && rs[0].side === "왼쪽" && rs[1].side === "오른쪽" && RQ.routineTotal(rs) === 200, "afterrun = 4 moves x 2 sides, 3:20");
+ok(RQ.ROUTINES.every((r) => { const tt = RQ.routineTotal(RQ.routineSteps(r.id)); return tt >= 150 && tt <= 215; }), "every routine is about 3 minutes");
+let rp = RQ.routinePos(rs, 2);
+ok(rp.i === 0 && rp.phase === "prep" && rp.left === 3, "starts with a get-ready count");
+rp = RQ.routinePos(rs, 5 + 12);
+ok(rp.i === 0 && rp.phase === "hold" && rp.left === 8, "then the hold");
+ok(RQ.routinePos(rs, 26).i === 1 && RQ.routinePos(rs, 200).done, "moves on to the other side, ends at total");
+const SS = RQ.fresh();
+ok(RQ.addStretch(SS, "afterrun", 200, true, "2026-11-12").xp === 20 && RQ.addStretch(SS, "desk", 60, false, "2026-11-12").xp === 0, "finished routine +20xp, stopped 0");
+ok(RQ.stretchesOn(SS, "2026-11-12") === 1 && RQ.minutesOn(SS, "2026-11-12") === 4, "stretch time counts toward today");
 
 console.log(pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);

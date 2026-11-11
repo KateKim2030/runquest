@@ -37,6 +37,14 @@ STATES = {
     "19_logbadges": (st(xp=400, log=[{"day": "2026-11-01", "kind": "snack", "snack": "squat", "n": 120, "full": True, "sec": 300, "done": True, "xp": 10}, {"day": "2026-11-02", "kind": "snack", "snack": "plank", "n": 90, "full": True, "sec": 90, "done": True, "xp": 10}]), 'go("log");scrollTo(0,330)'),
     "20_ring": (st(mode="strength", log=[{"day": T, "kind": "manual", "sec": 720, "done": True, "xp": 12}]), 'const q=RQ.strengthQuest(S,today());RQ.addSnack(S,q[0].id,q[0].n,20,today());RQ.addSnack(S,q[1].id,q[1].n,20,today());render()'),
     "21_settings": (st(), 'go("log");scrollTo(0,99999)'),
+    "22_stretch": (st(mode="stretch"), ''),
+    "23_stretch_low": (st(mode="stretch"), 'scrollTo(0,520)'),
+    "24_st_hold": (st(), 'startStretch("afterrun");STR.startAt-=33e3;strTick()'),
+    "25_st_cat": (st(), 'startStretch("desk");STR.startAt-=148e3;strTick()'),
+    "26_st_done": (st(), 'startStretch("bed");STR.startAt-=400e3;strTick()'),
+    "27_strength_list": (st(mode="strength"), 'scrollTo(0,640)'),
+    "28_strength_low": (st(mode="strength"), 'scrollTo(0,99999)'),
+    "29_result": (st(xp=200), 'startRun(4);R.startAt-=1381e3;tick();setTimeout(()=>document.querySelector("#result .modal").scrollTo(0,9999),200)'),
     "10_log": (st(cleared=7, xp=900, log=log + [{"day": T, "kind": "manual", "sec": 600, "done": True, "xp": 10}]), 'go("log")'),
 }
 for name, (state, act) in STATES.items():
