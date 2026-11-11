@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F1E4D1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="런퀘스트">
+<title>런퀘스트</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&family=Russo+One&display=swap">
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
+<style>
+/* One look: a calm sports poster. Bone paper, royal-blue ink, powder-blue sky; flat outlined illustrations of one recurring runner. */
+:root {
+  --bg: #F1E4D1; --bg2: #fbf6ee; --card: #e8dac4; --line: #dccab0; --ink: #162660; --soft: #4b5785; --dim: #8a91ab;
+  --run: #162660; --run-d: #0a1338; --walk: #D0E6FD; --walk-d: #98bde6; --fast: #f3c766; --fast-d: #c99c3c;
+  --warm: #e8d6bb; --warm-d: #cdb48f; --gold: #f3c766; --gold-d: #c99c3c; --pink: #ef8a62; --hi: #c75a33;
+  --edge: #d3bf9f; --nav: #fbf6eef2; --quest: #e4eefb; --paused: #4b5785; --sel: #D0E6FD;
+  --on-run: #fbf6ee; --on-walk: #162660; --on-fast: #162660; --on-gold: #162660; --on-warm: #162660;
+  --sky: none;
+  --skin: #f4cfb0; --skin-d: #e2b38f; --shirt: #ef8a62; --shirt-d: #d16f48;
+  --title: "Black Han Sans", "Jua", sans-serif; --fun: "Jua", "Noto Sans KR", "Malgun Gothic", sans-serif; --num: "Russo One", "Jua", sans-serif;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--fun); }
+body { min-height: 100dvh; background: var(--bg); background-image: var(--sky); background-attachment: fixed; }
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; padding: 0; }
+.wrap { max-width: 520px; margin: 0 auto; padding: 0 16px calc(96px + env(safe-area-inset-bottom)); }
+
+/* header */
+header { position: sticky; top: 0; z-index: 5; background: linear-gradient(var(--bg) 75%, transparent); padding: calc(10px + env(safe-area-inset-top)) 0 14px; }
+.top { display: flex; align-items: center; gap: 12px; }
+.logo { font-family: var(--title); font-size: 26px; letter-spacing: .5px; line-height: 1; }
+.logo b { color: var(--hi); font-weight: 400; }
+.logo small { display: block; font-family: var(--num); font-size: 10px; letter-spacing: 3px; color: var(--dim); margin-top: 4px; }
+.lv { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.lvbadge { font-family: var(--num); font-size: 13px; background: var(--gold); color: var(--on-gold); border-radius: 10px; padding: 5px 8px 4px; box-shadow: 0 3px 0 var(--gold-d); }
+.xpbar { width: 86px; height: 10px; border-radius: 6px; background: var(--card); overflow: hidden; }
+.xpbar i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold), var(--run)); border-radius: 6px; transition: width .6s; }
+.xptxt { font-family: var(--num); font-size: 10px; color: var(--dim); text-align: right; margin-top: 3px; }
+
+/* candy buttons */
+.btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 58px; border-radius: 18px;
+  font-family: var(--title); font-size: 22px; letter-spacing: .5px; background: var(--run); color: var(--on-run); box-shadow: 0 6px 0 var(--run-d); transition: transform .08s, box-shadow .08s; }
+.btn:active { transform: translateY(5px); box-shadow: 0 1px 0 var(--run-d); }
+.btn.green { background: var(--walk); box-shadow: 0 6px 0 var(--walk-d); color: var(--on-walk); }
+.btn.green:active { box-shadow: 0 1px 0 var(--walk-d); }
+.btn.ghost { background: var(--card); box-shadow: 0 5px 0 var(--edge); color: var(--ink); font-family: var(--fun); font-size: 18px; min-height: 52px; }
+.btn.ghost:active { box-shadow: 0 1px 0 var(--edge); }
+.btn.small { min-height: 44px; font-size: 16px; border-radius: 14px; }
+.link { color: var(--soft); text-decoration: underline; text-underline-offset: 3px; font-size: 15px; padding: 10px; display: block; margin: 6px auto 0; }
+
+.card { background: var(--bg2); border: 2px solid var(--line); border-radius: 24px; padding: 18px; margin-bottom: 16px; }
+.eyebrow { font-family: var(--num); font-size: 11px; letter-spacing: 2.5px; color: var(--hi, var(--gold)); }
+h2 { font-family: var(--title); font-weight: 400; font-size: 28px; margin: 4px 0 2px; line-height: 1.15; }
+.sub { color: var(--soft); font-size: 15px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+.chip { background: var(--card); border-radius: 999px; padding: 6px 11px 5px; font-size: 14px; }
+.chip b { font-family: var(--num); font-weight: 400; color: var(--hi, var(--gold)); }
+
+/* segment strip */
+.strip { display: flex; gap: 3px; height: 22px; margin: 4px 0 14px; }
+.strip i { border-radius: 5px; min-width: 3px; }
+.t-warm, .t-cool { background: var(--warm); } .t-walk { background: var(--walk); } .t-fast { background: var(--fast); } .t-run { background: var(--run); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; color: var(--soft); margin: -6px 0 14px; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; background: var(--c); }
+.desc { font-size: 15px; color: var(--soft); line-height: 1.55; margin: 0 0 16px; }
+
+/* today */
+.ringrow { display: flex; align-items: center; gap: 14px; }
+.ringrow > div:last-child { flex: 1; min-width: 0; }
+.ring { position: relative; width: 104px; height: 104px; flex: none; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring .num { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.ring .num b { font-family: var(--num); font-weight: 400; font-size: 30px; line-height: 1; }
+.ring .num span { font-size: 13px; color: var(--soft); }
+.weekdots { display: flex; gap: 4px; margin: 8px 0 4px; }
+.weekdots i { flex: 1; min-width: 20px; max-width: 30px; aspect-ratio: 1; border-radius: 10px; background: var(--card); display: grid; place-items: center; font-style: normal; font-size: 12px; color: var(--dim); }
+.weekdots i.on { background: var(--walk); color: var(--on-walk); }
+.weekdots i.today { outline: 2px solid var(--gold); outline-offset: 1px; }
+.streak { font-size: 15px; color: var(--soft); }
+.streak b { color: var(--hi, var(--gold)); font-weight: 400; }
+.manual { display: flex; gap: 10px; align-items: center; }
+.manual .btn { flex: 1; }
+.undo { color: var(--dim); font-size: 14px; padding: 8px; }
+.quest { position: relative; overflow: hidden; border-color: var(--run); background: linear-gradient(160deg, var(--quest), var(--bg2) 60%); }
+.quest.rest { border-color: var(--walk); }
+.scene { position: relative; margin: -18px -18px 16px; height: 150px; border-radius: 22px 22px 0 0; overflow: hidden; display: flex; justify-content: center; align-items: flex-end;
+  background: radial-gradient(28px 14px at 18% 30%, #fffc 60%, transparent 62%), radial-gradient(38px 16px at 80% 22%, #fffc 60%, transparent 62%), var(--walk); border-bottom: 2px solid var(--line); }
+.scene.night { background: radial-gradient(2px 2px at 20% 30%, #fff 60%, transparent 62%), radial-gradient(2px 2px at 70% 18%, #fff 60%, transparent 62%), radial-gradient(1.5px 1.5px at 40% 60%, #fff 60%, transparent 62%), #2b3a78; }
+.scene svg { height: 150px; width: 150px; flex: none; }
+.scene.wide svg { width: 190px; }
+
+/* map */
+.world-ban { position: absolute; left: 0; right: 0; height: 62px; border-radius: 18px; background: var(--card); display: flex; align-items: center; gap: 12px; padding: 0 16px; border: 2px solid var(--line); }
+.world-ban .em { width: 34px; height: 34px; border-radius: 50%; background: var(--ink); color: var(--bg2); display: grid; place-items: center; font-family: var(--num); font-size: 16px; flex: none; }
+.world-ban b { font-family: var(--title); font-weight: 400; font-size: 19px; display: block; }
+.world-ban small { color: var(--soft); font-size: 13px; }
+.world-ban .cnt { margin-left: auto; font-family: var(--num); font-size: 15px; color: var(--hi, var(--gold)); }
+.map { position: relative; }
+.map svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.node { position: absolute; width: 70px; margin-left: -35px; text-align: center; }
+.node .dot { width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; font-family: var(--num); font-size: 16px; background: var(--card); box-shadow: 0 5px 0 var(--edge); border: 3px solid var(--line); color: var(--dim); }
+.node.boss .dot { width: 76px; height: 76px; margin-top: -6px; font-size: 26px; }
+.node.done .dot { background: var(--gold); border-color: #fff3; box-shadow: 0 5px 0 var(--gold-d); color: var(--on-gold); font-size: 26px; }
+.node.today .dot { background: var(--run); border-color: var(--bg2); box-shadow: 0 5px 0 var(--run-d); color: var(--on-run); animation: pulse 1.6s infinite; }
+.node.tomorrow .dot { border-style: dashed; border-color: var(--walk); color: var(--walk); font-size: 22px; }
+.node .lab { font-size: 13px; margin-top: 7px; color: var(--soft); white-space: nowrap; }
+.node.today .lab { color: var(--ink); }
+@keyframes pulse { 50% { transform: scale(1.06); } }
+
+/* log */
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.tile { background: var(--bg2); border: 2px solid var(--line); border-radius: 18px; padding: 14px; }
+.tile span { font-size: 13px; color: var(--soft); }
+.tile b { display: block; font-family: var(--num); font-weight: 400; font-size: 26px; margin-top: 4px; }
+.tile b small { font-family: var(--fun); font-size: 14px; color: var(--soft); margin-left: 2px; }
+.bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; align-items: end; height: 150px; position: relative; margin-top: 12px; }
+.bars .goal { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--gold); opacity: .55; }
+.bars .col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 4px; }
+.bars .col i { width: 100%; max-width: 30px; border-radius: 7px 7px 3px 3px; background: var(--ink); min-height: 3px; }
+.bars .col.zero i { background: var(--card); }
+.bars .col small { font-family: var(--num); font-size: 11px; color: var(--soft); }
+.bars .col.today em { color: var(--hi, var(--gold)); }
+.bars .col em { font-style: normal; font-size: 13px; color: var(--dim); }
+.rec { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-top: 1px solid var(--line); font-size: 15px; }
+.rec:first-child { border-top: 0; }
+.rec .when { color: var(--dim); font-size: 13px; width: 52px; flex: none; }
+.rec .what { flex: 1; }
+.rec .t { font-family: var(--num); font-size: 14px; color: var(--soft); }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; font-size: 16px; }
+.toggle { width: 56px; height: 32px; border-radius: 99px; background: var(--card); position: relative; transition: background .2s; flex: none; }
+.toggle::after { content: ""; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: var(--dim); transition: transform .2s, background .2s; }
+.toggle.on { background: var(--walk-d); } .toggle.on::after { transform: translateX(24px); background: #fff; }
+.empty { color: var(--dim); font-size: 15px; padding: 8px 0; }
+
+/* bottom nav */
+nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--nav); border-top: 2px solid var(--line); padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); display: flex; justify-content: center; gap: 8px; backdrop-filter: blur(8px); }
+nav button { flex: 1; max-width: 160px; padding: 6px 0 4px; border-radius: 14px; color: var(--dim); font-size: 14px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+nav button .ic { width: 26px; height: 26px; opacity: .55; }
+nav button.on { color: var(--ink); background: var(--card); }
+nav button.on .ic { opacity: 1; }
+
+/* overlays */
+.ov { position: fixed; inset: 0; z-index: 20; display: none; }
+.ov.show { display: block; }
+.sheet-bg { position: absolute; inset: 0; background: #0009; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; max-width: 520px; margin: 0 auto; background: var(--bg2); border-radius: 28px 28px 0 0; border: 2px solid var(--line); border-bottom: 0; padding: 22px 18px calc(22px + env(safe-area-inset-bottom)); max-height: 88dvh; overflow: auto; animation: up .25s ease-out; }
+@keyframes up { from { transform: translateY(40px); opacity: 0; } }
+.modal { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; background: #000a; }
+.modal .box { width: 100%; max-width: 420px; background: var(--bg2); border: 2px solid var(--line); border-radius: 26px; padding: 22px 18px; animation: up .25s ease-out; }
+.modal .box p { color: var(--soft); line-height: 1.6; font-size: 16px; margin: 10px 0; }
+.modal .box .btn + .btn { margin-top: 14px; }
+.warn { background: color-mix(in srgb, var(--run) 12%, transparent); border: 2px solid color-mix(in srgb, var(--run) 35%, transparent); border-radius: 16px; padding: 12px 14px; color: var(--ink) !important; font-size: 15px !important; }
+
+/* run screen */
+#run { background: var(--warm); color: var(--on-warm); transition: background .5s; }
+#run.k-run { background: var(--run); color: var(--on-run); } #run.k-walk { background: var(--walk); color: var(--on-walk); } #run.k-fast { background: var(--fast); color: var(--on-fast); }
+#run.k-warm, #run.k-cool { background: var(--warm); }
+#run.paused { background: var(--paused) !important; color: #fff !important; }
+.rs { position: absolute; inset: 0; display: flex; flex-direction: column; padding: calc(14px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom)); max-width: 520px; margin: 0 auto; }
+.rs-top { display: flex; align-items: center; justify-content: space-between; font-size: 16px; opacity: .9; }
+.rs-top b { font-family: var(--num); font-weight: 400; }
+.rs-mid { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+.rs-art { width: clamp(150px, 24vh, 210px); aspect-ratio: 1; margin-bottom: 14px; }
+.rs-art svg { width: 100%; height: 100%; animation: bob var(--bob, 1s) ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(-6px); } }
+.rs-kind { font-family: var(--title); font-size: clamp(56px, 18vw, 92px); line-height: 1; }
+.rs-count { font-size: 20px; margin-top: 10px; min-height: 26px; }
+.rs-clock { font-family: var(--num); font-size: clamp(88px, 30vw, 150px); line-height: 1; margin-top: 18px; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
+.rs-next { margin-top: 18px; font-size: 19px; background: #0002; border-radius: 99px; padding: 8px 16px 7px; }
+.rs-prog { position: relative; display: flex; gap: 2px; height: 16px; margin: 0 0 18px; }
+.rs-prog i { border-radius: 4px; background: color-mix(in srgb, currentColor 22%, transparent); min-width: 2px; }
+.rs-prog i.cur { background: currentColor; }
+.rs-prog i.past { background: color-mix(in srgb, currentColor 55%, transparent); }
+.rs-prog .me { position: absolute; top: -6px; width: 4px; height: 28px; background: #fff; border-radius: 2px; box-shadow: 0 0 0 2px #0004; transition: left .3s linear; }
+.rs-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.rs-btns .btn { background: var(--bg2); color: var(--ink); box-shadow: 0 6px 0 #0003; }
+.rs-btns .btn:active { box-shadow: 0 1px 0 #0004; }
+.rs-btns .btn.stop { background: color-mix(in srgb, currentColor 14%, transparent); color: inherit; box-shadow: 0 6px 0 #0002; font-family: var(--fun); font-size: 18px; }
+.rs-dim { margin-top: 12px; font-size: 15px; opacity: .85; padding: 10px; text-decoration: underline; text-underline-offset: 3px; color: inherit; }
+.dimmer { position: absolute; inset: 0; background: #000; color: #8a8a8a; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 2; }
+.dimmer.show { display: flex; }
+.dimmer .k { font-family: var(--title); font-size: 44px; }
+.dimmer .c { font-family: var(--num); font-size: 96px; margin: 8px 0; color: #a0a0a0; }
+.dimmer small { font-size: 15px; color: #555; margin-top: 24px; }
+
+/* result */
+#result .modal { background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--run) 30%, transparent), #000b 70%); }
+.burst svg { width: 150px; height: 150px; display: block; margin: 0 auto; }
+.burst { font-size: 64px; text-align: center; animation: pop .6s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pop { from { transform: scale(.2) rotate(-20deg); opacity: 0; } }
+.clear-title { font-family: var(--title); font-size: 38px; text-align: center; line-height: 1.1; margin: 6px 0; color: var(--hi, var(--gold)); text-shadow: 0 3px 0 var(--edge); }
+.gain { text-align: center; font-family: var(--num); font-size: 26px; margin: 10px 0 4px; }
+.gain small { display: block; font-family: var(--fun); font-size: 16px; color: var(--soft); margin-top: 6px; }
+.rate { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0 6px; }
+.rate button { background: var(--card); border-radius: 16px; padding: 12px 4px; font-size: 15px; border: 2px solid transparent; }
+.rate button span { display: block; font-size: 28px; margin-bottom: 4px; }
+.rate button.sel { border-color: var(--hi, var(--gold)); background: var(--sel); }
+.rate-q { text-align: center; color: var(--soft); font-size: 15px; margin-top: 14px; }
+.hint { text-align: center; color: var(--soft); font-size: 14px; min-height: 20px; margin: 4px 0 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="top">
+      <div class="logo">런<b>퀘스트</b><small>RUN QUEST</small></div>
+      <div class="lv"><div><div class="xpbar"><i id="xpfill"></i></div><div class="xptxt" id="xptxt"></div></div><div class="lvbadge" id="lvbadge"></div></div>
+    </div>
+  </header>
+  <main id="view"></main>
+</div>
+<nav>
+  <button data-tab="today" class="on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>오늘</button>
+  <button data-tab="map"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 6l6-2.5 6 2.5 6-2.5v14.5l-6 2.5-6-2.5-6 2.5z"/><path d="M9 3.5V18M15 6v14.5"/></svg>지도</button>
+  <button data-tab="log"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 20V12M12 20V5M19 20v-9M3 20.5h18"/></svg>기록</button>
+</nav>
+
+<div class="ov" id="sheet"><div class="sheet-bg" data-close></div><div class="sheet" id="sheetbox"></div></div>
+<div class="ov" id="dialog"><div class="modal"><div class="box" id="dialogbox"></div></div></div>
+<div class="ov" id="result"><div class="modal"><div class="box" id="resultbox"></div></div></div>
+<div class="ov" id="run">
+  <div class="rs">
+    <div class="rs-top"><span id="r-stage"></span><span>남은 시간 <b id="r-total"></b></span></div>
+    <div class="rs-mid">
+      <div class="rs-art" id="r-art"></div>
+      <div class="rs-kind" id="r-kind"></div>
+      <div class="rs-count" id="r-count"></div>
+      <div class="rs-clock" id="r-clock"></div>
+      <div class="rs-next" id="r-next"></div>
+    </div>
+    <div class="rs-prog" id="r-prog"></div>
+    <div class="rs-btns">
+      <button class="btn stop" id="r-stop">그만하기</button>
+      <button class="btn" id="r-pause">일시정지</button>
+    </div>
+    <button class="rs-dim" id="r-dim">화면 어둡게 (배터리 아끼기)</button>
+  </div>
+  <div class="dimmer" id="dimmer"><div class="k" id="d-kind"></div><div class="c" id="d-clock"></div><div id="d-next"></div><small>화면을 누르면 밝아져요</small></div>
+</div>
+
+<script src="logic.js" charset="utf-8"></script>
+<script src="art.js" charset="utf-8"></script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const today = () => RQ.dayKey(new Date());
+let S = RQ.load(localStorage);
+let tab = "today";
+const persist = () => RQ.save(localStorage, S);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const mins = (sec) => { const m = Math.round(sec / 60); return m + "분"; };
+const strip = (segs) => '<div class="strip">' + segs.map((x) => '<i class="t-' + x[0] + '" style="flex:' + x[1] + '"></i>').join("") + "</div>";
+const LEGEND = '<div class="legend"><span style="--c:var(--warm)">준비·마무리</span><span style="--c:var(--walk)">걷기</span><span style="--c:var(--fast)">빠르게 걷기</span><span style="--c:var(--run)">뛰기</span></div>';
+
+// "준비 걷기 5분 → 뛰기 1분 5번 (사이 걷기 2분) → 마무리 걷기 5분"
+function describe(segs) {
+  const core = segs.slice(1, -1), parts = ["준비 걷기 " + RQ.fmtSay(segs[0][1])];
+  const on = core[0], rest = core[1];
+  const isReps = rest && core.every((x, i) => (i % 2 ? x[0] === rest[0] && x[1] === rest[1] : x[0] === on[0] && x[1] === on[1])) && core.length % 2 === 1;
+  if (isReps) parts.push(RQ.NAMES[on[0]] + " " + RQ.fmtSay(on[1]) + " " + ((core.length + 1) / 2) + "번 (사이마다 " + RQ.NAMES[rest[0]] + " " + RQ.fmtSay(rest[1]) + ")");
+  else core.forEach((x) => parts.push(RQ.NAMES[x[0]] + " " + RQ.fmtSay(x[1])));
+  parts.push("마무리 걷기 " + RQ.fmtSay(segs[segs.length - 1][1]));
+  return parts.join(" → ");
+}
+function stageChips(st) {
+  const r = RQ.runSec(st);
+  return '<div class="chips"><span class="chip">총 <b>' + mins(RQ.totalSec(st)) + '</b></span><span class="chip">' + (r ? '뛰기 <b>' + RQ.fmtSay(r) + "</b>" : "걷기만") +
+    '</span><span class="chip">보상 <b>+' + RQ.xpFor(st) + " XP</b></span></div>";
+}
+
+// ---------------- header ----------------
+function drawHeader() {
+  const L = RQ.level(S.xp);
+  $("lvbadge").textContent = "Lv." + L.lv;
+  $("xpfill").style.width = Math.round((L.into / L.need) * 100) + "%";
+  $("xptxt").textContent = L.into + " / " + L.need + " XP";
+}
+
+// ---------------- today ----------------
+function ringSvg(min) {
+  const r = 50, c = 2 * Math.PI * r, p = Math.min(1, min / RQ.GOAL_MIN);
+  return '<svg viewBox="0 0 116 116"><circle cx="58" cy="58" r="' + r + '" fill="none" style="stroke:var(--card)" stroke-width="13"/>' +
+    '<circle cx="58" cy="58" r="' + r + '" fill="none" style="stroke:' + (p >= 1 ? "var(--gold)" : "var(--ink)") + '" stroke-width="13" stroke-linecap="' + (p > 0 ? "round" : "butt") + '" stroke-dasharray="' + (c * p).toFixed(1) + " " + c.toFixed(1) + '"/></svg>';
+}
+function viewToday() {
+  const t = today(), min = RQ.minutesOn(S, t), wk = RQ.week(S, t), streak = RQ.streakWeeks(S, t), plan = RQ.todayPlan(S, t);
+  const names = ["월", "화", "수", "목", "금", "토", "일"];
+  let h = '<div class="card"><div class="ringrow"><div class="ring">' + ringSvg(min) + '<div class="num"><b>' + min + '</b><span>/ ' + RQ.GOAL_MIN + '분</span></div></div><div>' +
+    '<div class="eyebrow">TODAY</div><div style="font-size:19px;margin-top:2px">' + (min >= RQ.GOAL_MIN ? "오늘 목표 달성! 🎉" : (RQ.GOAL_MIN - min) + "분 더 움직이면 달성") + "</div>" +
+    '<div class="weekdots">' + wk.days.map((d, i) => '<i class="' + (d.min >= 5 ? "on " : "") + (d.day === t ? "today" : "") + '">' + names[i] + "</i>").join("") + "</div>" +
+    '<div class="streak">이번 주 <b>' + wk.active + "</b>/3일" + (streak ? " · 🔥 <b>" + streak + "주</b> 연속" : "") + "</div></div></div></div>";
+
+  const st = plan.stage;
+  if (plan.kind === "rest") {
+    h += '<div class="card quest rest"><div class="scene night wide">' + RQART.svg("rest") + '</div><div class="eyebrow">QUEST CLEAR</div><h2>오늘 퀘스트 클리어!</h2>' +
+      '<div class="sub">' + esc(plan.last.id) + " 완료. 달리기는 하루 쉬어야 몸이 강해져요.<br>내일 <b style=\"color:var(--ink)\">" + esc(st.id) + " " + esc(st.title) + "</b> 판이 열려요.</div>" +
+      '<div style="height:16px"></div><button class="btn ghost small" data-play="' + plan.last.idx + '">같은 판 한 번 더 (XP만 받기)</button></div>';
+  } else if (plan.kind === "allclear") {
+    h += '<div class="card quest"><div class="scene">' + RQART.svg("cheer") + '</div><div class="eyebrow">ALL CLEAR</div><h2>30분 달리기 정복!</h2><div class="sub">모든 판을 깼어요. 원하는 판을 골라 계속 달려요.</div>' +
+      '<div style="height:16px"></div><button class="btn" data-play="' + st.idx + '">마지막 보스 다시 하기</button></div>';
+  } else {
+    const rep = plan.kind === "repeat";
+    h += '<div class="card quest"><div class="scene">' + RQART.svg(RQ.runSec(st) ? "run" : "fast") + "</div>" +
+      '<div class="eyebrow">' + (rep ? "ONE MORE TIME" : st.boss ? "👑 BOSS STAGE" : "TODAY'S QUEST") + " · WORLD " + st.world + "</div>" +
+      "<h2>" + esc(st.id) + " " + esc(st.title) + "</h2>" +
+      '<div class="sub">' + (rep ? "지난번에 힘들었던 판이에요. 한 번 더 하면 훨씬 쉬워져요." : esc(st.worldName) + " 월드") + "</div>" +
+      stageChips(st) + strip(st.segs) + '<p class="desc">' + esc(describe(st.segs)) + "</p>" +
+      '<button class="btn" data-play="' + st.idx + '">▶ 시작하기</button>' +
+      (rep ? '<button class="link" data-play="' + plan.next.idx + '">그래도 다음 판(' + esc(plan.next.id) + ")으로 갈래요</button>" : "") + "</div>";
+  }
+  const hasManual = S.log.some((e) => e.day === t && e.kind === "manual");
+  h += '<div class="card"><div class="eyebrow">EXTRA</div><div style="font-size:17px;margin:4px 0 12px">앱 없이 걷거나 운동했나요?</div><div class="manual">' +
+    '<button class="btn green small" id="add10">+10분 기록</button>' + (hasManual ? '<button class="undo" id="undo10">되돌리기</button>' : "") + "</div></div>";
+  return h;
+}
+
+// ---------------- map ----------------
+const XS = [24, 50, 76, 50];
+function viewMap() {
+  const t = today();
+  let y = 0, nodes = "", lines = [], bans = "", prev = null;
+  RQ.WORLDS.forEach((w, wi) => {
+    const done = RQ.STAGES.filter((s) => s.world === w.n && s.idx < S.cleared).length;
+    const skip = w.n === 1 && S.skippedWorld1;
+    bans += '<div class="world-ban" style="top:' + y + 'px"><span class="em">' + w.n + "</span><div><b>WORLD " + w.n + " · " + esc(w.name) + "</b><small>" +
+      (skip ? "1분 달리기가 돼서 건너뛰었어요" : ["가볍게 걷기부터", "1분씩 뛰고 걷기", "뛰는 시간 늘리기", "10분 넘게 뛰기", "쉬지 않고 뛰기", "마지막 30분 도전"][wi]) + '</small></div><span class="cnt">' + done + "/4</span></div>";
+    y += 92;
+    RQ.STAGES.filter((s) => s.world === w.n).forEach((s, i) => {
+      const ns = RQ.nodeState(S, s.idx, t), x = XS[i], cy = y + 34;
+      const icon = ns === "done" ? (s.boss ? "👑" : "★") : ns === "today" ? (s.boss ? "👑" : "GO") : ns === "tomorrow" ? "🌙" : s.boss ? "👑" : "🔒";
+      const lab = ns === "tomorrow" ? "내일 열림" : s.boss ? "보스" : s.short;
+      nodes += '<button class="node ' + ns + (s.boss ? " boss" : "") + '" style="left:' + x + "%;top:" + y + 'px" data-stage="' + s.idx + '" ' + (ns === "today" ? 'id="nownode"' : "") +
+        '><div class="dot">' + icon + '</div><div class="lab">' + esc(lab) + "</div></button>";
+      if (prev) lines.push([prev[0], prev[1], x, cy, s.idx <= S.cleared]);
+      prev = [x, cy];
+      y += 100;
+    });
+    prev = null; // no line across world banners
+    y += 6;
+  });
+  const svg = '<svg>' + lines.map((l) => '<line x1="' + l[0] + '%" y1="' + l[1] + '" x2="' + l[2] + '%" y2="' + l[3] + '" style="stroke:' + (l[4] ? "var(--gold)" : "var(--line)") + '" stroke-width="6" stroke-dasharray="' + (l[4] ? "0" : "2 12") + '" stroke-linecap="round"/>').join("") + "</svg>";
+  return '<div class="map" style="height:' + y + 'px">' + svg + bans + nodes + "</div>";
+}
+function openStage(idx) {
+  const st = RQ.STAGES[idx], ns = RQ.nodeState(S, idx, today());
+  const status = { done: "클리어한 판 · 다시 하면 XP를 받아요", today: "오늘 도전할 판", tomorrow: "내일 열려요 · 오늘은 쉬는 날", lock: "잠김 · 앞 판을 깨면 열려요" }[ns];
+  let h = '<div class="eyebrow">WORLD ' + st.world + " · " + esc(st.worldName) + "</div><h2>" + (st.boss ? "👑 " : "") + esc(st.id) + " " + esc(st.title) + '</h2><div class="sub">' + status + "</div>" +
+    stageChips(st) + strip(st.segs) + LEGEND + '<p class="desc">' + esc(describe(st.segs)) + "</p>";
+  h += RQ.canPlay(S, idx, today()) ? '<button class="btn" data-play="' + idx + '">▶ 시작하기</button>' : '<button class="btn ghost" data-close>닫기</button>';
+  $("sheetbox").innerHTML = h;
+  $("sheet").classList.add("show");
+}
+
+// ---------------- log ----------------
+function viewLog() {
+  const t = today(), wk = RQ.week(S, t);
+  const days = new Set(S.log.filter((e) => e.sec >= 300).map((e) => e.day)).size;
+  const total = Math.floor(S.log.reduce((a, e) => a + e.sec, 0) / 60);
+  const cleared = S.cleared - (S.skippedWorld1 ? 4 : 0);
+  const max = Math.max(RQ.GOAL_MIN * 1.5, ...wk.days.map((d) => d.min));
+  const names = ["월", "화", "수", "목", "금", "토", "일"];
+  let h = '<div class="tiles"><div class="tile"><span>깬 판</span><b>' + cleared + "<small>/ " + (RQ.STAGES.length - (S.skippedWorld1 ? 4 : 0)) + '</small></b></div>' +
+    '<div class="tile"><span>운동한 날</span><b>' + days + '<small>일</small></b></div><div class="tile"><span>총 운동 시간</span><b>' + (total >= 60 ? Math.floor(total / 60) + "<small>시간</small> " + (total % 60) : total) + '<small>분</small></b></div>' +
+    '<div class="tile"><span>주 3회 연속</span><b>' + RQ.streakWeeks(S, t) + "<small>주</small></b></div></div>";
+  h += '<div class="card"><div class="eyebrow">THIS WEEK</div><div style="font-size:17px;margin-top:4px">이번 주 ' + wk.days.reduce((a, d) => a + d.min, 0) + "분 · 점선은 하루 목표 " + RQ.GOAL_MIN + "분</div>" +
+    '<div class="bars"><div class="goal" style="bottom:' + ((RQ.GOAL_MIN / max) * 128 + 22) + 'px"></div>' +
+    wk.days.map((d, i) => '<div class="col' + (d.min ? "" : " zero") + (d.day === t ? " today" : "") + '"><small>' + (d.min || "") + '</small><i style="height:' + Math.round((d.min / max) * 128) + 'px"></i><em>' + names[i] + "</em></div>").join("") + "</div></div>";
+  const recent = S.log.slice(-15).reverse();
+  const rateIc = { easy: "😎", ok: "🙂", hard: "🥵" };
+  h += '<div class="card"><div class="eyebrow">RECORDS</div>' + (recent.length ? recent.map((e) => {
+    const [, m, d] = e.day.split("-");
+    const what = e.kind === "manual" ? "🚶 직접 기록" : (e.done ? "★ " : "⏸ ") + esc(e.stage) + (e.done ? " 클리어" : " 중간에 멈춤");
+    return '<div class="rec"><span class="when">' + +m + "/" + +d + '</span><span class="what">' + what + " " + (rateIc[e.rating] || "") + '</span><span class="t">' + Math.round(e.sec / 60) + "분</span></div>";
+  }).join("") : '<div class="empty">아직 기록이 없어요. 첫 판을 시작해 볼까요?</div>') + "</div>";
+  h += '<div class="card"><div class="eyebrow">SETTINGS</div><div class="row"><span>음성 안내</span><button class="toggle' + (S.voice ? " on" : "") + '" id="voiceT" aria-label="음성 안내"></button></div>' +
+    '<div class="row"><span>소리·진동 테스트</span><button class="btn ghost small" style="width:auto;padding:0 16px" id="testSnd">들어보기</button></div>' +
+    '<div class="row"><span style="color:var(--soft)">처음부터 다시 시작</span><button class="undo" id="resetAll">초기화</button></div></div>';
+  return h;
+}
+
+// ---------------- render ----------------
+function render() {
+  drawHeader();
+  $("view").innerHTML = tab === "today" ? viewToday() : tab === "map" ? viewMap() : viewLog();
+  document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("on", b.dataset.tab === tab));
+}
+function go(t) {
+  tab = t; render();
+  if (t === "map") { const n = $("nownode"); scrollTo(0, n ? n.getBoundingClientRect().top + scrollY - 220 : 0); } else scrollTo(0, 0);
+}
+
+// ---------------- dialogs ----------------
+function dialog(html) { $("dialogbox").innerHTML = html; $("dialog").classList.add("show"); }
+const closeAll = () => ["sheet", "dialog"].forEach((id) => $(id).classList.remove("show"));
+function intro() {
+  dialog('<div class="burst">' + RQART.svg("cheer") + '</div><h2 style="text-align:center">런퀘스트에 어서 오세요</h2>' +
+    "<p>판을 하나씩 깨면서 <b style=\"color:var(--ink)\">30분 쉬지 않고 달리기</b>까지 가는 게임이에요. 음성이 언제 뛰고 언제 걸을지 알려줘요.</p>" +
+    '<p class="warn">⚠️ 무릎·허리·심장에 문제가 있으면 의사와 먼저 상담하세요. 뛰다가 아프거나 어지러우면 바로 멈추고 걸으세요.</p>' +
+    "<p>어디서부터 시작할까요?</p>" +
+    '<button class="btn" id="fromW2">월드 2부터 (1분은 뛸 수 있어요)</button><button class="btn ghost" id="fromW1">월드 1 걷기부터</button>');
+}
+
+// ---------------- sound / voice / vibration ----------------
+let AC = null;
+function audioInit() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume(); } catch (e) {} }
+function beep(freq, dur) {
+  if (!AC) return;
+  try {
+    const o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime;
+    o.type = "square"; o.frequency.value = freq; o.connect(g); g.connect(AC.destination);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.18, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.start(t); o.stop(t + dur + 0.02);
+  } catch (e) {}
+}
+let koVoice = null;
+function pickVoice() { try { const vs = speechSynthesis.getVoices(); koVoice = vs.find((v) => /ko[-_]KR/i.test(v.lang)) || vs.find((v) => /^ko/i.test(v.lang)) || null; } catch (e) {} }
+if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function say(text) {
+  if (!S.voice || !("speechSynthesis" in window)) return;
+  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = "ko-KR"; if (koVoice) u.voice = koVoice; u.rate = 1.05; speechSynthesis.speak(u); } catch (e) {}
+}
+const buzz = (p) => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+const BUZZ = { run: [400, 150, 400, 150, 400], walk: [250], fast: [250, 120, 250], warm: [200], cool: [200, 100, 200], done: [300, 100, 300, 100, 700] };
+
+// ---------------- wake lock ----------------
+let lock = null;
+async function wake() { try { if ("wakeLock" in navigator && !lock) { lock = await navigator.wakeLock.request("screen"); lock.addEventListener("release", () => { lock = null; }); } } catch (e) {} }
+function unwake() { try { lock && lock.release(); } catch (e) {} lock = null; }
+
+// ---------------- run engine ----------------
+// R = { idx, startAt, pausedMs, pausedAt, seen, said } — saved so a reload mid-run can resume.
+let R = null, timer = null;
+const RUNKEY = "runquest-run";
+const saveRun = () => { try { R ? localStorage.setItem(RUNKEY, JSON.stringify(R)) : localStorage.removeItem(RUNKEY); } catch (e) {} };
+const elapsed = () => ((R.pausedAt || Date.now()) - R.startAt - R.pausedMs) / 1000;
+
+function startRun(idx) {
+  audioInit(); closeAll();
+  R = { idx, startAt: Date.now(), pausedMs: 0, pausedAt: 0, seen: -1, said: {} };
+  saveRun(); openRun();
+}
+function openRun() {
+  const st = RQ.STAGES[R.idx];
+  $("r-stage").textContent = (st.boss ? "👑 " : "") + st.id + " " + st.title;
+  $("r-prog").innerHTML = st.segs.map((x) => '<i style="flex:' + x[1] + '"></i>').join("") + '<span class="me" id="r-me"></span>';
+  $("run").classList.add("show"); $("dimmer").classList.remove("show");
+  document.body.style.overflow = "hidden";
+  wake(); clearInterval(timer); timer = setInterval(tick, 250); tick();
+}
+function tick() {
+  if (!R) return;
+  const st = RQ.STAGES[R.idx], segs = st.segs, el = elapsed(), pos = RQ.segmentAt(segs, el), total = RQ.totalSec(st);
+  if (pos.done) return complete(true);
+  const k = pos.type, rn = RQ.runNo(segs, pos.i);
+  if (pos.i !== R.seen) {
+    const jumped = R.seen >= 0 && pos.i > R.seen + 1;      // screen was off for a whole segment
+    const late = pos.into > 4;                               // came back mid-segment
+    R.seen = pos.i; saveRun();
+    say(late || jumped ? "지금은 " + RQ.NAMES[k] + ". " + RQ.fmtSay(Math.ceil(pos.left)) + " 남았어요." : RQ.announce(segs, pos.i));
+    buzz(BUZZ[k]); if (!late) beep(k === "run" ? 988 : 660, 0.25);
+  }
+  // halfway cue on longer runs, 3-2-1 beeps before every switch
+  const hk = "h" + pos.i;
+  if (k === "run" && pos.len >= 120 && pos.into >= pos.len / 2 && !R.said[hk]) { R.said[hk] = 1; if (pos.into - pos.len / 2 < 5) say("절반 지났어요. 좋아요!"); }
+  const s = Math.ceil(pos.left);
+  if (s <= 3 && s >= 1 && !R.pausedAt && !R.said[pos.i + "-" + s] && !document.hidden) { R.said[pos.i + "-" + s] = 1; beep(s === 1 ? 880 : 520, 0.12); }
+  if (k === "run" && pos.len >= 60 && s === 10 && !R.said["t" + pos.i] && !R.pausedAt) { R.said["t" + pos.i] = 1; say("10초 남았어요."); }
+
+  const run = $("run");
+  run.className = "ov show k-" + k + (R.pausedAt ? " paused" : "");
+  const artKey = R.pausedAt ? "tired" : { run: "run", walk: "walk", fast: "fast", warm: "stretch", cool: "walk" }[k];
+  if ($("r-art").dataset.k !== artKey) {
+    $("r-art").dataset.k = artKey;
+    $("r-art").innerHTML = RQART.svg(artKey, { disc: k === "run" && !R.pausedAt ? "#F1E4D1" : "#fbf6ee" });
+    $("r-art").style.setProperty("--bob", artKey === "run" ? ".42s" : artKey === "tired" ? "2.4s" : ".9s");
+  }
+  const kind = R.pausedAt ? "잠깐 멈춤" : RQ.NAMES[k];
+  $("r-kind").textContent = kind; $("d-kind").textContent = kind;
+  $("r-count").textContent = k === "run" && rn.all > 1 ? rn.all + "번 중 " + rn.n + "번째" + (rn.n === rn.all ? " · 마지막!" : "") : k === "warm" ? "몸 풀기" : k === "cool" ? "거의 다 왔어요" : "";
+  $("r-clock").textContent = RQ.clock(pos.left); $("d-clock").textContent = RQ.clock(pos.left);
+  const nx = segs[pos.i + 1], nxt = nx ? "다음: " + RQ.NAMES[nx[0]] + " " + RQ.fmtSay(nx[1]) : "다음: 클리어! 🎉";
+  $("r-next").textContent = nxt; $("d-next").textContent = nxt;
+  $("r-total").textContent = RQ.clock(total - el);
+  [...$("r-prog").children].forEach((c, j) => { if (c.tagName === "I") c.className = j < pos.i ? "past" : j === pos.i ? "cur" : ""; });
+  $("r-me").style.left = "calc(" + ((el / total) * 100).toFixed(2) + "% - 2px)";
+  $("r-pause").textContent = R.pausedAt ? "▶ 계속" : "일시정지";
+}
+function togglePause() {
+  if (!R) return;
+  if (R.pausedAt) { R.pausedMs += Date.now() - R.pausedAt; R.pausedAt = 0; say("다시 시작해요."); wake(); }
+  else { R.pausedAt = Date.now(); say("잠깐 멈췄어요."); }
+  saveRun(); tick();
+}
+function complete(done) {
+  const st = RQ.STAGES[R.idx], sec = Math.min(elapsed(), RQ.totalSec(st));
+  clearInterval(timer); timer = null; unwake();
+  const idx = R.idx; R = null; saveRun();
+  $("run").classList.remove("show"); document.body.style.overflow = "";
+  const out = RQ.finish(S, idx, sec, done, today()); persist();
+  if (done) { buzz(BUZZ.done); beep(784, .15); setTimeout(() => beep(1047, .3), 170); say(st.boss ? "보스 격파! 정말 대단해요." : "클리어! 수고했어요."); }
+  showResult(st, out, done, sec);
+}
+function showResult(st, out, done, sec) {
+  const L = RQ.level(S.xp);
+  let h;
+  if (done) {
+    const title = out.worldClear ? "월드 " + st.world + " 정복!" : st.boss && out.newClear ? "보스 격파!" : out.newClear ? "STAGE CLEAR!" : "한 번 더 클리어!";
+    const next = RQ.STAGES[S.cleared];
+    h = '<div class="burst">' + RQART.svg("cheer") + '</div><div class="clear-title">' + title + "</div>" +
+      '<div class="sub" style="text-align:center">' + esc(st.id) + " " + esc(st.title) + " · " + mins(sec) + "</div>" +
+      '<div class="gain">+' + out.xp + " XP" + (out.levelUp ? "<small>🎉 레벨 업! 이제 Lv." + L.lv + "</small>" : "") +
+      (out.newClear && next ? "<small>내일 " + esc(next.id) + " 판이 열려요</small>" : "") + (out.newClear && !next ? "<small>모든 판을 깼어요! 30분 달리기 성공!</small>" : "") + "</div>" +
+      '<div class="rate-q">오늘 판은 어땠어요?</div><div class="rate">' +
+      '<button data-rate="easy"><span>😎</span>쉬웠다</button><button data-rate="ok"><span>🙂</span>적당했다</button><button data-rate="hard"><span>🥵</span>힘들었다</button></div>' +
+      '<div class="hint" id="ratehint"></div><button class="btn green" id="resDone">확인</button>';
+  } else {
+    h = '<div class="burst">' + RQART.svg("tired") + '</div><div class="clear-title" style="color:var(--ink)">여기까지 OK!</div>' +
+      '<div class="sub" style="text-align:center">' + mins(sec) + " 움직인 건 오늘 운동량에 들어갔어요.<br>판은 끝까지 해야 깨져요. 다음에 다시 도전!</div>" +
+      '<div class="gain">+' + out.xp + " XP</div>" + '<div style="height:12px"></div><button class="btn green" id="resDone">확인</button>';
+  }
+  R_res = { idx: st.idx };
+  $("resultbox").innerHTML = h; $("result").classList.add("show");
+}
+let R_res = null;
+
+// ---------------- events ----------------
+document.addEventListener("click", (e) => {
+  const t = e.target;
+  const nb = t.closest("nav button"); if (nb) return go(nb.dataset.tab);
+  const pl = t.closest("[data-play]"); if (pl) return startRun(+pl.dataset.play);
+  const nd = t.closest("[data-stage]"); if (nd) return openStage(+nd.dataset.stage);
+  if (t.closest("[data-close]")) return closeAll();
+  const rt = t.closest("[data-rate]");
+  if (rt && R_res) {
+    document.querySelectorAll("[data-rate]").forEach((b) => b.classList.toggle("sel", b === rt));
+    RQ.rate(S, R_res.idx, rt.dataset.rate); persist();
+    $("ratehint").textContent = { easy: "좋아요! 다음 판으로 쭉 가요.", ok: "딱 좋은 속도예요.", hard: "다음엔 이 판을 한 번 더 하자고 알려드릴게요." }[rt.dataset.rate];
+    return;
+  }
+  switch (t.id) {
+    case "resDone": $("result").classList.remove("show"); R_res = null; return go("today");
+    case "add10": RQ.addManual(S, 10, today()); persist(); buzz(80); return render();
+    case "undo10": RQ.undoManual(S, today()); persist(); return render();
+    case "fromW2": case "fromW1": S = RQ.start(S, t.id === "fromW2" ? 2 : 1); persist(); closeAll(); return go("today");
+    case "voiceT": S.voice = !S.voice; persist(); return render();
+    case "testSnd": audioInit(); beep(988, .25); buzz(BUZZ.run); { const v = S.voice; S.voice = true; say("뛰기 1분. 시작!"); S.voice = v; } return;
+    case "resetAll":
+      return dialog('<h2>처음부터 다시 할까요?</h2><p>깬 판, XP, 기록이 모두 지워지고 되돌릴 수 없어요.</p><button class="btn" id="resetYes">모두 지우고 다시 시작</button><button class="btn ghost" data-close>취소</button>');
+    case "resetYes": S = RQ.fresh(); persist(); closeAll(); render(); return intro();
+    case "r-pause": return togglePause();
+    case "r-stop":
+      return dialog('<h2>그만할까요?</h2><p>지금까지 움직인 ' + mins(elapsed()) + '은 기록돼요. 판은 끝까지 해야 깨져요.</p><button class="btn" id="stopYes">그만하기</button><button class="btn ghost" data-close>계속 달리기</button>');
+    case "stopYes": closeAll(); return complete(false);
+    case "r-dim": $("dimmer").classList.add("show"); return;
+    case "dimmer": $("dimmer").classList.remove("show"); return;
+  }
+  if (t.closest("#dimmer")) $("dimmer").classList.remove("show");
+});
+document.addEventListener("visibilitychange", () => { if (!document.hidden && R) { wake(); tick(); } });
+// a running stage cannot be closed by the Android back button by accident
+addEventListener("beforeunload", (e) => { if (R) { e.preventDefault(); e.returnValue = ""; } });
+
+// ---------------- boot ----------------
+(function boot() {
+  render();
+  if (!S.started) return intro();
+  try {
+    const saved = JSON.parse(localStorage.getItem(RUNKEY) || "null");
+    if (saved && Date.now() - saved.startAt < 3 * 3600e3) {
+      R = saved; openRun();
+      if (!R.pausedAt) { R.pausedAt = Date.now(); saveRun(); tick(); }
+      say("하던 판을 이어서 할 수 있어요. 계속을 누르세요.");
+    } else localStorage.removeItem(RUNKEY);
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
