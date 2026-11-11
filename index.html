@@ -148,6 +148,7 @@ nav button.on .ic { opacity: 1; }
 /* overlays */
 .ov { position: fixed; inset: 0; z-index: 20; display: none; }
 .ov.show { display: block; }
+#dialog { z-index: 40; }
 .sheet-bg { position: absolute; inset: 0; background: #0009; }
 .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-width: 520px; margin: 0 auto; background: var(--bg2); border-radius: 28px 28px 0 0; border: 2px solid var(--line); border-bottom: 0; padding: 22px 18px calc(22px + env(safe-area-inset-bottom)); max-height: 88dvh; overflow: auto; animation: up .25s ease-out; }
 @keyframes up { from { transform: translateY(40px); opacity: 0; } }
@@ -395,7 +396,7 @@ function openStage(idx) {
     stageChips(st) + strip(st.segs) + LEGEND + '<p class="desc">' + esc(describe(st.segs)) + "</p>";
   h += RQ.canPlay(S, idx, today()) ? '<button class="btn" data-play="' + idx + '">▶ 시작하기</button>' : '<button class="btn ghost" data-close>닫기</button>';
   $("sheetbox").innerHTML = h;
-  $("sheet").classList.add("show");
+  $("sheet").classList.add("show"); armBack();
 }
 
 // ---------------- log ----------------
@@ -444,7 +445,7 @@ function openSnackSheet(id) {
     '<div class="stepper"><button data-stepn="-1" aria-label="줄이기">−</button><b>' + n + "<small>" + unit + '</small></b><button data-stepn="1" aria-label="늘리기">+</button></div>' +
     '<button class="btn" data-snackgo="' + id + '">▶ 시작하기</button>';
   $("sheetbox").dataset.snack = id;
-  $("sheet").classList.add("show");
+  $("sheet").classList.add("show"); armBack();
 }
 
 // ---------------- snack engine ----------------
@@ -461,7 +462,7 @@ function startSnack(id) {
     '<div class="sk-pic">' + RQART.ex(id, 0).replace("<svg", '<svg id="sk-a"') + RQART.ex(id, 1).replace("<svg", '<svg id="sk-b" class="off"') + "</div>" +
     '<div class="sk-num" id="sk-num"></div><div class="sk-cue" id="sk-cue"></div><div class="sk-bar"><i id="sk-bar"></i></div><div class="sk-sp"></div>' +
     '<div class="sk-btns"><button class="btn ghost" id="sk-pause">일시정지</button><button class="btn" id="sk-stop2">끝내기</button></div>';
-  $("snack").classList.add("show"); document.body.style.overflow = "hidden";
+  $("snack").classList.add("show"); document.body.style.overflow = "hidden"; armBack();
   wake(); clearInterval(skTimer); skTimer = setInterval(skTick, 100); skTick();
 }
 function skOnce(key, fn) { if (!SK.said[key]) { SK.said[key] = 1; fn(); } }
@@ -531,12 +532,12 @@ function render() {
   document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("on", b.dataset.tab === tab));
 }
 function go(t) {
-  tab = t; render();
+  tab = t; render(); if (t !== "today") armBack();
   if (t === "map") { const n = $("nownode"); scrollTo(0, n ? n.getBoundingClientRect().top + scrollY - 220 : 0); } else scrollTo(0, 0);
 }
 
 // ---------------- dialogs ----------------
-function dialog(html) { $("dialogbox").innerHTML = html; $("dialog").classList.add("show"); }
+function dialog(html) { $("dialogbox").innerHTML = html; $("dialog").classList.add("show"); armBack(); }
 const closeAll = () => ["sheet", "dialog"].forEach((id) => $(id).classList.remove("show"));
 function intro() {
   dialog('<div class="burst">' + RQART.svg("cheer") + '</div><h2 style="text-align:center">런퀘스트에 어서 오세요</h2>' +
@@ -590,11 +591,12 @@ function openRun() {
   $("r-stage").textContent = (st.boss ? "👑 " : "") + st.id + " " + st.title;
   $("r-prog").innerHTML = st.segs.map((x) => '<i style="flex:' + x[1] + '"></i>').join("") + '<span class="me" id="r-me"></span>';
   $("run").classList.add("show"); $("dimmer").classList.remove("show");
-  document.body.style.overflow = "hidden";
+  document.body.style.overflow = "hidden"; armBack();
   wake(); clearInterval(timer); timer = setInterval(tick, 250); tick();
 }
 function tick() {
   if (!R) return;
+  if (!R.pausedAt && Date.now() - (R.beat || 0) > 5000) { R.beat = Date.now(); saveRun(); }
   const st = RQ.STAGES[R.idx], segs = st.segs, el = elapsed(), pos = RQ.segmentAt(segs, el), total = RQ.totalSec(st);
   if (pos.done) return complete(true);
   const k = pos.type, rn = RQ.runNo(segs, pos.i);
@@ -665,7 +667,7 @@ function showResult(st, out, done, sec) {
       '<div class="gain">+' + out.xp + " XP</div>" + '<div style="height:12px"></div><button class="btn green" id="resDone">확인</button>';
   }
   R_res = { idx: st.idx };
-  $("resultbox").innerHTML = h; $("result").classList.add("show");
+  $("resultbox").innerHTML = h; $("result").classList.add("show"); armBack();
 }
 let R_res = null;
 
@@ -700,10 +702,11 @@ document.addEventListener("click", (e) => {
     case "resetYes": S = RQ.fresh(); persist(); closeAll(); render(); return intro();
     case "sk-pause": return skPause();
     case "sk-stop": case "sk-stop2": return skFinish(false);
-    case "sk-close": $("snack").classList.remove("show"); document.body.style.overflow = ""; return render();
+    case "sk-close": return closeSnack();
     case "r-pause": return togglePause();
-    case "r-stop":
-      return dialog('<h2>그만할까요?</h2><p>지금까지 움직인 ' + mins(elapsed()) + '은 기록돼요. 판은 끝까지 해야 깨져요.</p><button class="btn" id="stopYes">그만하기</button><button class="btn ghost" data-close>계속 달리기</button>');
+    case "r-stop": return askStop();
+    case "resumeYes": closeAll(); return openRun();
+    case "resumeNo": closeAll(); openRun(); return complete(false);
     case "stopYes": closeAll(); return complete(false);
     case "r-dim": $("dimmer").classList.add("show"); return;
     case "dimmer": $("dimmer").classList.remove("show"); return;
@@ -714,6 +717,28 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden && R)
 // a running stage cannot be closed by the Android back button by accident
 addEventListener("beforeunload", (e) => { if (R) { e.preventDefault(); e.returnValue = ""; } });
 
+// ---------------- Android back button ----------------
+// While anything is open (a run, a snack set, a sheet, a dialog, another tab) one extra history entry is kept,
+// and "back" closes the top thing instead of closing the app.
+let backArmed = false;
+function armBack() { if (!backArmed) { try { history.pushState({ rq: 1 }, ""); backArmed = true; } catch (e) {} } }
+function askStop() {
+  return dialog('<h2>그만할까요?</h2><p>지금까지 움직인 ' + mins(elapsed()) + '은 기록돼요. 판은 끝까지 해야 깨져요.</p><button class="btn" id="stopYes">그만하기</button><button class="btn ghost" data-close>계속하기</button>');
+}
+function closeSnack() { $("snack").classList.remove("show"); document.body.style.overflow = ""; render(); }
+const isOpen = (id) => $(id).classList.contains("show");
+addEventListener("popstate", () => {
+  backArmed = false;
+  if (isOpen("dialog")) { closeAll(); if (R || SK) armBack(); return; }
+  if (R) { if (isOpen("dimmer")) { $("dimmer").classList.remove("show"); return armBack(); } return askStop(); }
+  if (SK) { skFinish(false); if (isOpen("snack")) armBack(); return; }
+  if (isOpen("snack")) return closeSnack();
+  if (isOpen("result")) { $("result").classList.remove("show"); R_res = null; return go("today"); }
+  if (isOpen("sheet")) { closeAll(); if (tab !== "today") armBack(); return; }
+  if (tab !== "today") return go("today");
+  history.back(); // nothing open on the first tab: leave the app
+});
+
 // ---------------- boot ----------------
 (function boot() {
   render();
@@ -721,9 +746,12 @@ addEventListener("beforeunload", (e) => { if (R) { e.preventDefault(); e.returnV
   try {
     const saved = JSON.parse(localStorage.getItem(RUNKEY) || "null");
     if (saved && Date.now() - saved.startAt < 3 * 3600e3) {
-      R = saved; openRun();
-      if (!R.pausedAt) { R.pausedAt = Date.now(); saveRun(); tick(); }
-      say("하던 판을 이어서 할 수 있어요. 계속을 누르세요.");
+      // The app was closed mid-run: freeze the clock at the last heartbeat and ask what to do.
+      R = saved;
+      if (!R.pausedAt) { R.pausedAt = Math.max(R.startAt, R.beat || R.startAt); saveRun(); }
+      const st = RQ.STAGES[R.idx];
+      dialog('<h2>하던 판이 있어요</h2><p>' + esc(st.id + " " + st.title) + "을 " + mins(elapsed()) + ' 하다가 멈췄어요. 이어서 할까요?</p>' +
+        '<button class="btn" id="resumeYes">이어서 하기</button><button class="btn ghost" id="resumeNo">그만하고 기록하기</button>');
     } else localStorage.removeItem(RUNKEY);
   } catch (e) {}
 })();
