@@ -235,12 +235,16 @@
   function activeDays(state, from, to) {
     const sum = {};
     state.log.forEach((e) => { if (e.day >= from && e.day <= to) sum[e.day] = (sum[e.day] || 0) + e.sec; });
-    return new Set(Object.keys(sum).filter((d) => sum[d] >= 300));
+    const set = new Set(Object.keys(sum).filter((d) => sum[d] >= 300));
+    // a cleared strength quest also makes the day count, even though three sets take under two minutes
+    Object.keys(state.qClears || {}).forEach((d) => { if (d >= from && d <= to) set.add(d); });
+    return set;
   }
   function week(state, today) {
     const mon = mondayOf(today);
-    const days = Array.from({ length: 7 }, (_, i) => { const k = addDays(mon, i); return { day: k, min: minutesOn(state, k), future: k > today }; });
-    return { mon, days, active: activeDays(state, mon, addDays(mon, 6)).size };
+    const act = activeDays(state, mon, addDays(mon, 6));
+    const days = Array.from({ length: 7 }, (_, i) => { const k = addDays(mon, i); return { day: k, min: minutesOn(state, k), future: k > today, active: act.has(k) }; });
+    return { mon, days, active: act.size };
   }
   // Weeks in a row with 3+ active days. The current week counts once it hits 3, and never breaks the streak while in progress.
   function streakWeeks(state, today) {
@@ -264,6 +268,20 @@
     }
     return { i: segs.length, done: true, left: 0 };
   }
+  // True once every working segment is finished and only the cool-down walk is left (or the stage is over).
+  function reachedCooldown(segs, elapsed) { const p = segmentAt(segs, elapsed); return p.done || p.i >= segs.length - 1; }
+
+  // ---------- backup ----------
+  const exportData = (state, now) => JSON.stringify({ app: "runquest", exported: now || "", state });
+  function importData(text) {
+    let o;
+    try { o = JSON.parse(text); } catch (e) { throw new Error("파일을 읽을 수 없어요."); }
+    const st = o && o.app === "runquest" ? o.state : o;
+    if (!st || st.v !== 1 || !Array.isArray(st.log) || typeof st.cleared !== "number" || typeof st.xp !== "number")
+      throw new Error("런퀘스트 백업 파일이 아니에요.");
+    return { ...fresh(), ...st };
+  }
+
   const NAMES = { warm: "준비 걷기", walk: "걷기", fast: "빠르게 걷기", run: "뛰기", cool: "마무리 걷기" };
   function fmtSay(sec) {
     const m = Math.floor(sec / 60), s = sec % 60;
@@ -297,6 +315,7 @@
 
   const API = { KEY, GOAL_MIN, WORLDS, STAGES, NAMES, totalSec, runSec, runCount, xpFor, dayKey, addDays, mondayOf,
     SNACKS, SNACK, SNACK_XP, QUEST_XP, BADGE_XP, BADGE_STEPS, strengthQuest, questCleared, snackTotal, badgeLabel, badgesFor, allBadges, rateSnack, SPEEDS, snackSpeed, setSnackSpeed, tempoOf, snackN, setSnackN, snackLabel, addSnack, snacksOn, koNum, activeDays,
+    reachedCooldown, exportData, importData,
     fresh, start, nodeState, todayPlan, canPlay, finish, rate, addManual, undoManual, minutesOn, level, week,
     streakWeeks, segmentAt, fmtSay, clock, runNo, announce, load, save };
   if (typeof module !== "undefined" && module.exports) module.exports = API; else root.RQ = API;

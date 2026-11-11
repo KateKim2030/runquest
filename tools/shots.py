@@ -35,6 +35,8 @@ STATES = {
     "17_qclear": (st(xp=100, log=[{"day": "2026-11-01", "kind": "snack", "snack": "squat", "n": 45, "full": True, "sec": 90, "done": True, "xp": 10}]), 'const q=RQ.strengthQuest(S,today());RQ.addSnack(S,q[0].id,q[0].n,20,today());RQ.addSnack(S,q[1].id,q[1].n,20,today());startSnack(q[2].id);SK.startAt-=300e3;skTick()'),
     "18_badge": (st(xp=100, log=[{"day": "2026-11-01", "kind": "snack", "snack": "squat", "n": 40, "full": True, "sec": 90, "done": True, "xp": 10}]), 'startSnack("squat");SK.startAt-=300e3;skTick()'),
     "19_logbadges": (st(xp=400, log=[{"day": "2026-11-01", "kind": "snack", "snack": "squat", "n": 120, "full": True, "sec": 300, "done": True, "xp": 10}, {"day": "2026-11-02", "kind": "snack", "snack": "plank", "n": 90, "full": True, "sec": 90, "done": True, "xp": 10}]), 'go("log");scrollTo(0,330)'),
+    "20_ring": (st(mode="strength", log=[{"day": T, "kind": "manual", "sec": 720, "done": True, "xp": 12}]), 'const q=RQ.strengthQuest(S,today());RQ.addSnack(S,q[0].id,q[0].n,20,today());RQ.addSnack(S,q[1].id,q[1].n,20,today());render()'),
+    "21_settings": (st(), 'go("log");scrollTo(0,99999)'),
     "10_log": (st(cleared=7, xp=900, log=log + [{"day": T, "kind": "manual", "sec": 600, "done": True, "xp": 10}]), 'go("log")'),
 }
 for name, (state, act) in STATES.items():

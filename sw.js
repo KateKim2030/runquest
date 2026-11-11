@@ -1,7 +1,7 @@
-const CACHE = "runquest-6";
+const CACHE = "runquest-7";
 const CORE = ["./", "index.html", "logic.js", "art.js", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE))); self.skipWaiting(); });
-self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
+self.addEventListener("activate", (e) => e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())));
 
 const timeout = (ms) => new Promise((_, no) => setTimeout(() => no(new Error("slow")), ms));
 async function networkFirst(req) {

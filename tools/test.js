@@ -112,5 +112,16 @@ ok(RQ.rateSnack(B, "squat", "easy") === 12 && RQ.snackN(B, "squat") === 12, "eas
 ok(RQ.rateSnack(B, "squat", "ok") === null && RQ.rateSnack(B, "squat", "hard") === 10, "ok keeps, hard -> 10");
 ok(RQ.rateSnack(B, "plank", "easy") === 40, "plank easy -> 40s");
 
+// review fixes: cool-down clear, quest days count, backup
+const cs = RQ.STAGES[4].segs; // 2-1: warm 5, (run 1 + walk 2) x4 + run 1, cool 5 = 23 min
+ok(!RQ.reachedCooldown(cs, 17 * 60 + 59) && RQ.reachedCooldown(cs, 18 * 60 + 1) && RQ.reachedCooldown(cs, 23 * 60), "cool-down starts at 18:00 in 2-1");
+const QA = RQ.fresh(); QA.qClears = { "2026-11-10": true, "2026-11-11": true, "2026-11-12": true };
+ok(RQ.week(QA, "2026-11-12").active === 3 && RQ.week(QA, "2026-11-12").days[1].active && RQ.streakWeeks(QA, "2026-11-12") === 1, "strength quest days count toward the week");
+const EX = RQ.start(RQ.fresh(), 2); RQ.addSnack(EX, "squat", 10, 20, "2026-11-12"); EX.mode = "strength";
+const back = RQ.importData(RQ.exportData(EX, "2026-11-12T00:00:00Z"));
+ok(back.cleared === 4 && back.log.length === 1 && back.mode === "strength" && back.xp === EX.xp, "backup round trip");
+let threw = 0; ["nope", "{}", '{"v":1}', '{"app":"runquest","state":{"v":2,"log":[],"cleared":0,"xp":0}}'].forEach((x) => { try { RQ.importData(x); } catch (e) { threw++; } });
+ok(threw === 4, "bad backup files are rejected");
+
 console.log(pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);

@@ -76,7 +76,10 @@ h2 { font-family: var(--title); font-weight: 400; font-size: 28px; margin: 4px 0
 .ring { position: relative; width: 104px; height: 104px; flex: none; }
 .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .ring .num { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
-.ring .num b { font-family: var(--num); font-weight: 400; font-size: 30px; line-height: 1; }
+.ring .num b { font-family: var(--num); font-weight: 400; font-size: 26px; line-height: 1; }
+.goal2 { font-size: 16px; margin-top: 3px; white-space: nowrap; }
+.goal2 i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 7px; }
+.goal2 b { font-family: var(--num); font-weight: 400; }
 .ring .num span { font-size: 13px; color: var(--soft); }
 .weekdots { display: flex; gap: 4px; margin: 8px 0 4px; }
 .weekdots i { flex: 1; min-width: 20px; max-width: 30px; aspect-ratio: 1; border-radius: 10px; background: var(--card); display: grid; place-items: center; font-style: normal; font-size: 12px; color: var(--dim); }
@@ -367,10 +370,12 @@ function drawHeader() {
 }
 
 // ---------------- today ----------------
-function ringSvg(min) {
-  const r = 50, c = 2 * Math.PI * r, p = Math.min(1, min / RQ.GOAL_MIN);
-  return '<svg viewBox="0 0 116 116"><circle cx="58" cy="58" r="' + r + '" fill="none" style="stroke:var(--card)" stroke-width="13"/>' +
-    '<circle cx="58" cy="58" r="' + r + '" fill="none" style="stroke:' + (p >= 1 ? "var(--gold)" : "var(--ink)") + '" stroke-width="13" stroke-linecap="' + (p > 0 ? "round" : "butt") + '" stroke-dasharray="' + (c * p).toFixed(1) + " " + c.toFixed(1) + '"/></svg>';
+// Two goals in one badge: outer ring = minutes moved today, inner ring = today's strength quest (0-3).
+function ringSvg(min, got) {
+  const arc = (r, w, p, col) => { const c = 2 * Math.PI * r;
+    return '<circle cx="58" cy="58" r="' + r + '" fill="none" style="stroke:var(--card)" stroke-width="' + w + '"/>' +
+      (p > 0 ? '<circle cx="58" cy="58" r="' + r + '" fill="none" style="stroke:' + col + '" stroke-width="' + w + '" stroke-linecap="round" stroke-dasharray="' + (c * Math.min(1, p)).toFixed(1) + " " + c.toFixed(1) + '"/>' : ""); };
+  return '<svg viewBox="0 0 116 116">' + arc(52, 10, min / RQ.GOAL_MIN, min >= RQ.GOAL_MIN ? "var(--gold)" : "var(--ink)") + arc(39, 8, got / 3, got >= 3 ? "var(--gold)" : "var(--hi)") + "</svg>";
 }
 function viewToday() {
   const t = today(), min = RQ.minutesOn(S, t), wk = RQ.week(S, t), streak = RQ.streakWeeks(S, t), plan = RQ.todayPlan(S, t);
@@ -378,9 +383,12 @@ function viewToday() {
   let h = '<div class="modes" role="group" aria-label="운동 종류">' +
     '<button class="mode" data-mode="cardio" aria-pressed="' + (mode === "cardio") + '"><span class="mi">' + RQART.svg("run") + '</span><span><b>유산소</b><small>걷기 · 달리기</small></span></button>' +
     '<button class="mode" data-mode="strength" aria-pressed="' + (mode === "strength") + '"><span class="mi">' + RQART.ex("squat", 1) + '</span><span><b>근력</b><small>스쿼트 · 플랭크</small></span></button></div>';
-  h += '<div class="card"><div class="ringrow"><div class="ring">' + ringSvg(min) + '<div class="num"><b>' + min + '</b><span>/ ' + RQ.GOAL_MIN + '분</span></div></div><div>' +
-    '<div class="eyebrow">TODAY</div><div style="font-size:19px;margin-top:2px">' + (min >= RQ.GOAL_MIN ? "오늘 목표 달성! 🎉" : (RQ.GOAL_MIN - min) + "분 더 움직이면 달성") + "</div>" +
-    '<div class="weekdots">' + wk.days.map((d, i) => '<i class="' + (d.min >= 5 ? "on " : "") + (RQ.questCleared(S, d.day) ? "str " : "") + (d.day === t ? "today" : "") + '">' + names[i] + "</i>").join("") + "</div>" +
+  const got = RQ.strengthQuest(S, t).filter((it) => it.done).length, both = min >= RQ.GOAL_MIN && got >= 3;
+  h += '<div class="card"><div class="ringrow"><div class="ring">' + ringSvg(min, got) + '<div class="num"><b>' + min + '</b><span>분</span></div></div><div>' +
+    '<div class="eyebrow">TODAY</div>' + (both ? '<div style="font-size:19px;margin-top:2px">오늘 목표 모두 달성! 🎉</div>' :
+      '<div class="goal2"><i style="background:var(--ink)"></i>움직임 <b>' + min + "</b>/" + RQ.GOAL_MIN + "분" + (min >= RQ.GOAL_MIN ? " ✓" : "") + "</div>" +
+      '<div class="goal2"><i style="background:var(--hi)"></i>근력 퀘스트 <b>' + got + "</b>/3" + (got >= 3 ? " ✓" : "") + "</div>") +
+    '<div class="weekdots">' + wk.days.map((d, i) => '<i class="' + (d.active ? "on " : "") + (RQ.questCleared(S, d.day) ? "str " : "") + (d.day === t ? "today" : "") + '">' + names[i] + "</i>").join("") + "</div>" +
     '<div class="streak">이번 주 <b>' + wk.active + "</b>/3일" + (streak ? " · 🔥 <b>" + streak + "주</b> 연속" : "") + "</div></div></div></div>";
 
   if (mode === "strength") return h + viewSnack();
@@ -480,6 +488,8 @@ function viewLog() {
   }).join("") : '<div class="empty">아직 기록이 없어요. 첫 판을 시작해 볼까요?</div>') + "</div>";
   h += '<div class="card"><div class="eyebrow">SETTINGS</div><div class="row"><span>음성 안내</span><button class="toggle' + (S.voice ? " on" : "") + '" id="voiceT" aria-label="음성 안내"></button></div>' +
     '<div class="row"><span>소리·진동 테스트</span><button class="btn ghost small" style="width:auto;padding:0 16px" id="testSnd">들어보기</button></div>' +
+    '<div class="row"><span>기록 백업<small style="display:block;color:var(--soft);font-size:13px">폰을 바꾸거나 크롬 데이터를 지우기 전에 저장해 두세요</small></span><button class="btn ghost small" style="width:auto;padding:0 16px;flex:none" id="exportBtn">파일로 저장</button></div>' +
+    '<div class="row"><span>백업 불러오기</span><button class="btn ghost small" style="width:auto;padding:0 16px" id="importBtn">파일 고르기</button><input type="file" id="importFile" accept=".json,application/json" hidden></div>' +
     '<div class="row"><span style="color:var(--soft)">처음부터 다시 시작</span><button class="undo" id="resetAll">초기화</button></div></div>';
   return h;
 }
@@ -591,10 +601,10 @@ function skFinish(complete) {
   SK = null;
   if (!done) { $("snack").classList.remove("show"); document.body.style.overflow = ""; return render(); }
   const out = RQ.addSnack(S, id, done, sec, today()); persist();
-  if (complete) { say("끝! 잘했어요."); buzz(BUZZ.done); beep(784, .15); setTimeout(() => beep(1047, .3), 170); }
+  if (complete) { say("끝! 잘했어요.", true); buzz(BUZZ.done); beep(784, .15); setTimeout(() => beep(1047, .3), 170); }
   const unit = x.kind === "time" ? "초" : "개", n = RQ.snacksOn(S, today());
   const inQuest = out.quest.some((it) => it.id === id), got = out.quest.filter((it) => it.done).length;
-  if (out.questClear) setTimeout(() => say("근력 퀘스트 클리어!"), 1400);
+  if (out.questClear) say("근력 퀘스트 클리어!", true);
   const parts = [];
   if (out.xp) parts.push("세트 +" + RQ.SNACK_XP);
   if (out.questClear) parts.push("퀘스트 +" + RQ.QUEST_XP);
@@ -649,9 +659,10 @@ function beep(freq, dur) {
 let koVoice = null;
 function pickVoice() { try { const vs = speechSynthesis.getVoices(); koVoice = vs.find((v) => /ko[-_]KR/i.test(v.lang)) || vs.find((v) => /^ko/i.test(v.lang)) || null; } catch (e) {} }
 if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
-function say(text) {
+// keep = queue after whatever is being spoken instead of cutting it off
+function say(text, keep) {
   if (!S.voice || !("speechSynthesis" in window)) return;
-  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = "ko-KR"; if (koVoice) u.voice = koVoice; u.rate = 1.05; speechSynthesis.speak(u); } catch (e) {}
+  try { if (!keep) speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = "ko-KR"; if (koVoice) u.voice = koVoice; u.rate = 1.05; speechSynthesis.speak(u); } catch (e) {}
 }
 const buzz = (p) => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
 const BUZZ = { run: [400, 150, 400, 150, 400], walk: [250], fast: [250, 120, 250], warm: [200], cool: [200, 100, 200], done: [300, 100, 300, 100, 700] };
@@ -731,6 +742,8 @@ function complete(done) {
   clearInterval(timer); timer = null; unwake();
   const idx = R.idx; R = null; saveRun();
   $("run").classList.remove("show"); document.body.style.overflow = "";
+  // Stopping during the cool-down walk still clears the stage: every working segment was finished.
+  done = done || RQ.reachedCooldown(st.segs, sec);
   const out = RQ.finish(S, idx, sec, done, today()); persist();
   if (done) { buzz(BUZZ.done); beep(784, .15); setTimeout(() => beep(1047, .3), 170); say(st.boss ? "보스 격파! 정말 대단해요." : "클리어! 수고했어요."); }
   showResult(st, out, done, sec);
@@ -750,7 +763,7 @@ function showResult(st, out, done, sec) {
       '<div class="hint" id="ratehint"></div><button class="btn green" id="resDone">확인</button>';
   } else {
     h = '<div class="burst">' + RQART.svg("tired") + '</div><div class="clear-title" style="color:var(--ink)">여기까지 OK!</div>' +
-      '<div class="sub" style="text-align:center">' + mins(sec) + " 움직인 건 오늘 운동량에 들어갔어요.<br>판은 끝까지 해야 깨져요. 다음에 다시 도전!</div>" +
+      '<div class="sub" style="text-align:center">' + mins(sec) + " 움직인 건 오늘 운동량에 들어갔어요.<br>판은 마무리 걷기 전까지 해야 깨져요. 다음에 다시 도전!</div>" +
       '<div class="gain">+' + out.xp + " XP</div>" + '<div style="height:12px"></div><button class="btn green" id="resDone">확인</button>';
   }
   R_res = { idx: st.idx };
@@ -796,6 +809,15 @@ document.addEventListener("click", (e) => {
     case "fromW2": case "fromW1": S = RQ.start(S, t.id === "fromW2" ? 2 : 1); persist(); closeAll(); return go("today");
     case "voiceT": S.voice = !S.voice; persist(); return render();
     case "testSnd": audioInit(); beep(988, .25); buzz(BUZZ.run); { const v = S.voice; S.voice = true; say("뛰기 1분. 시작!"); S.voice = v; } return;
+    case "exportBtn": {
+      const day = today(), blob = new Blob([RQ.exportData(S, new Date().toISOString())], { type: "application/json" });
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "runquest-backup-" + day + ".json";
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      S.lastBackup = day; persist();
+      return dialog("<h2>백업 파일을 저장했어요</h2><p>다운로드 폴더의 <b style=\"color:var(--ink)\">" + a.download + '</b> 파일이에요. 새 폰에서는 기록 탭 → 백업 불러오기에서 이 파일을 고르면 돼요.</p><button class="btn" data-close>확인</button>');
+    }
+    case "importBtn": $("importFile").value = ""; return $("importFile").click();
+    case "importYes": if (pendingImport) { S = pendingImport; pendingImport = null; persist(); } closeAll(); return go("today");
     case "resetAll":
       return dialog('<h2>처음부터 다시 할까요?</h2><p>깬 판, XP, 기록이 모두 지워지고 되돌릴 수 없어요.</p><button class="btn" id="resetYes">모두 지우고 다시 시작</button><button class="btn ghost" data-close>취소</button>');
     case "resetYes": S = RQ.fresh(); persist(); closeAll(); render(); return intro();
@@ -816,13 +838,33 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden && R)
 // a running stage cannot be closed by the Android back button by accident
 addEventListener("beforeunload", (e) => { if (R) { e.preventDefault(); e.returnValue = ""; } });
 
+// ---------------- backup import ----------------
+let pendingImport = null;
+document.addEventListener("change", (e) => {
+  if (e.target.id !== "importFile" || !e.target.files[0]) return;
+  const fr = new FileReader();
+  fr.onload = () => {
+    try {
+      const st = RQ.importData(String(fr.result));
+      pendingImport = st;
+      const sets = st.log.filter((x) => x.kind === "snack").length;
+      dialog("<h2>이 백업을 불러올까요?</h2><p>백업 내용: 깬 판 " + st.cleared + "개 · Lv." + RQ.level(st.xp).lv + " · 기록 " + st.log.length + "개(근력 " + sets + "세트)</p>" +
+        '<p class="warn">지금 이 폰의 기록은 백업 내용으로 바뀌어요.</p><button class="btn" id="importYes">불러오기</button><button class="btn ghost" data-close>취소</button>');
+    } catch (err) { dialog("<h2>불러올 수 없어요</h2><p>" + esc(err.message) + '</p><button class="btn" data-close>확인</button>'); }
+  };
+  fr.readAsText(e.target.files[0]);
+});
+
 // ---------------- Android back button ----------------
 // While anything is open (a run, a snack set, a sheet, a dialog, another tab) one extra history entry is kept,
 // and "back" closes the top thing instead of closing the app.
 let backArmed = false;
 function armBack() { if (!backArmed) { try { history.pushState({ rq: 1 }, ""); backArmed = true; } catch (e) {} } }
 function askStop() {
-  return dialog('<h2>그만할까요?</h2><p>지금까지 움직인 ' + mins(elapsed()) + '은 기록돼요. 판은 끝까지 해야 깨져요.</p><button class="btn" id="stopYes">그만하기</button><button class="btn ghost" data-close>계속하기</button>');
+  const cool = RQ.reachedCooldown(RQ.STAGES[R.idx].segs, elapsed());
+  return dialog("<h2>그만할까요?</h2><p>" + (cool ? "본 운동은 다 끝냈어요. 지금 그만해도 <b style=\"color:var(--ink)\">클리어로 인정</b>돼요. 마무리 걷기를 끝까지 하면 몸이 더 잘 풀려요."
+    : "지금까지 움직인 " + mins(elapsed()) + "은 기록돼요. 판은 마무리 걷기 전까지 해야 깨져요.") +
+    '</p><button class="btn" id="stopYes">' + (cool ? "클리어하고 끝내기" : "그만하기") + '</button><button class="btn ghost" data-close>계속하기</button>');
 }
 function closeSnack() { $("snack").classList.remove("show"); document.body.style.overflow = ""; render(); }
 const isOpen = (id) => $(id).classList.contains("show");
